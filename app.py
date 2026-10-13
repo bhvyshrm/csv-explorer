@@ -1,14 +1,15 @@
-"""CSV Explorer - Interactive Exploratory Data Analysis (EDA) Web Application.
+"""Analytix 2.0 - Multi-Format Data Exploration Platform.
 
-A modern, beginner-friendly, portfolio-quality data profiling dashboard built
-with Streamlit, pandas, and Plotly.
+A modern, SaaS-grade exploratory data analysis dashboard supporting CSV files
+and multi-sheet Excel workbooks (.xlsx, .xls) built with Streamlit, pandas,
+and Plotly.
 """
 
 from __future__ import annotations
 
 import io
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import pandas as pd
 import streamlit as st
@@ -30,6 +31,16 @@ from src.data_quality import (
     IssueSeverity,
     generate_data_quality_report,
 )
+from src.excel_loader import (
+    ExcelCorruptedError,
+    ExcelEmptySheetError,
+    ExcelEmptyWorkbookError,
+    ExcelSheetNotFoundError,
+    ExcelUnsupportedFormatError,
+    WorkbookMetadata,
+    inspect_excel_workbook,
+    load_excel_sheet,
+)
 from src.export import (
     export_dataframe_to_csv,
     generate_json_report,
@@ -49,33 +60,37 @@ from src.visualizations import (
 )
 
 # Application metadata
-APP_TITLE = "CSV Explorer"
-APP_VERSION = "1.0.0"
-SAMPLE_DATA_PATH = Path("sample_data/sample_superstore_eda.csv")
+APP_TITLE = "Analytix"
+APP_TAGLINE = "Explore data. Discover insights."
+APP_VERSION = "2.0.0"
+
+SAMPLE_CSV_PATH = Path("sample_data/sample_superstore_eda.csv")
+SAMPLE_EXCEL_PATH = Path("sample_data/sample_analytix_multisheet.xlsx")
 
 # Set Streamlit page configuration
 st.set_page_config(
-    page_title=f"{APP_TITLE} • Modern EDA Dashboard",
-    page_icon="📊",
+    page_title=f"{APP_TITLE} • {APP_TAGLINE}",
+    page_icon="◈",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom SaaS Dark CSS Styles
+# Analytix 2.0 Modern Dark SaaS CSS Theme
 CUSTOM_CSS = """
 <style>
-/* Modern typography and base styling */
+/* Typography & Base Reset */
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #F5F6FA;
 }
 
-/* Metric card styling */
+/* Metric Cards */
 div[data-testid="stMetric"] {
-    background-color: #151923;
-    border: 1px solid #293143;
+    background-color: #151824;
+    border: 1px solid #292E3D;
     border-radius: 8px;
     padding: 14px 18px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 div[data-testid="stMetric"]:hover {
@@ -84,115 +99,167 @@ div[data-testid="stMetric"]:hover {
 }
 
 div[data-testid="stMetricLabel"] {
-    color: #A3ADBD !important;
-    font-size: 0.85rem !important;
+    color: #A3A9BA !important;
+    font-size: 0.82rem !important;
     font-weight: 500 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 div[data-testid="stMetricValue"] {
-    color: #F5F7FA !important;
-    font-size: 1.6rem !important;
+    color: #F5F6FA !important;
+    font-size: 1.65rem !important;
     font-weight: 700 !important;
 }
 
-/* Card container helper */
-.eda-card {
-    background-color: #151923;
-    border: 1px solid #293143;
+/* Card Container */
+.analytix-card {
+    background-color: #151824;
+    border: 1px solid #292E3D;
     border-radius: 10px;
     padding: 20px 24px;
     margin-bottom: 20px;
 }
 
-.eda-card-title {
+.analytix-card-title {
     font-size: 1.15rem;
     font-weight: 600;
-    color: #F5F7FA;
-    margin-bottom: 8px;
+    color: #F5F6FA;
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.eda-card-subtitle {
+.analytix-card-subtitle {
     font-size: 0.88rem;
-    color: #A3ADBD;
-    margin-bottom: 16px;
+    color: #A3A9BA;
+    margin-bottom: 14px;
 }
 
-/* Badges */
+/* Status Badges */
 .badge-clean {
-    background-color: rgba(54, 201, 143, 0.15);
-    color: #36C98F;
-    border: 1px solid rgba(54, 201, 143, 0.3);
-    padding: 4px 10px;
+    background-color: rgba(53, 201, 143, 0.15);
+    color: #35C98F;
+    border: 1px solid rgba(53, 201, 143, 0.35);
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.82rem;
     font-weight: 600;
 }
 
 .badge-warning {
-    background-color: rgba(245, 185, 66, 0.15);
-    color: #F5B942;
-    border: 1px solid rgba(245, 185, 66, 0.3);
-    padding: 4px 10px;
+    background-color: rgba(243, 187, 87, 0.15);
+    color: #F3BB57;
+    border: 1px solid rgba(243, 187, 87, 0.35);
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.82rem;
     font-weight: 600;
 }
 
 .badge-critical {
-    background-color: rgba(240, 113, 120, 0.15);
-    color: #F07178;
-    border: 1px solid rgba(240, 113, 120, 0.3);
-    padding: 4px 10px;
+    background-color: rgba(240, 120, 133, 0.15);
+    color: #F07885;
+    border: 1px solid rgba(240, 120, 133, 0.35);
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.82rem;
     font-weight: 600;
 }
 
-/* Hero container */
+.badge-format {
+    background-color: rgba(139, 124, 255, 0.18);
+    color: #8B7CFF;
+    border: 1px solid rgba(139, 124, 255, 0.4);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-sheet {
+    background-color: rgba(77, 216, 199, 0.18);
+    color: #4DD8C7;
+    border: 1px solid rgba(77, 216, 199, 0.4);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Welcome Hero Box */
 .hero-box {
-    background: linear-gradient(145deg, #151923 0%, #1B2130 100%);
-    border: 1px solid #293143;
+    background: linear-gradient(135deg, #151824 0%, #1B2030 100%);
+    border: 1px solid #292E3D;
     border-radius: 12px;
     padding: 32px 36px;
     margin-bottom: 24px;
 }
 
 .hero-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #F5F7FA;
-    margin-bottom: 8px;
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: #F5F6FA;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
 }
 
 .hero-subtitle {
     font-size: 1.15rem;
     color: #8B7CFF;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 12px;
 }
 
 .hero-desc {
     font-size: 0.95rem;
-    color: #A3ADBD;
-    line-height: 1.5;
+    color: #A3A9BA;
+    line-height: 1.6;
     max-width: 820px;
 }
 
-/* Sidebar styling tweaks */
-[data-testid="stSidebar"] {
-    background-color: #10131B;
-    border-right: 1px solid #293143;
+/* Sidebar Branding */
+.brand-mark {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #F5F6FA;
+    letter-spacing: -0.5px;
 }
 
-/* Responsive table overflow */
+.brand-accent {
+    color: #8B7CFF;
+}
+
+.brand-tagline {
+    font-size: 0.78rem;
+    color: #A3A9BA;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: -2px;
+}
+
+/* Navigation category label */
+.nav-category {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8B7CFF;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+/* Sidebar Container */
+[data-testid="stSidebar"] {
+    background-color: #10121A;
+    border-right: 1px solid #292E3D;
+}
+
+/* DataFrame Styling */
 div[data-testid="stDataFrame"] {
     border-radius: 8px;
-    border: 1px solid #293143;
+    border: 1px solid #292E3D;
 }
 </style>
 """
@@ -200,11 +267,19 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
 def init_session_state() -> None:
-    """Initialize persistent Streamlit session keys."""
+    """Initialize persistent Analytix session keys."""
     if "df" not in st.session_state:
         st.session_state["df"] = None
     if "dataset_name" not in st.session_state:
         st.session_state["dataset_name"] = None
+    if "dataset_format" not in st.session_state:
+        st.session_state["dataset_format"] = "CSV"
+    if "active_worksheet" not in st.session_state:
+        st.session_state["active_worksheet"] = None
+    if "excel_raw_bytes" not in st.session_state:
+        st.session_state["excel_raw_bytes"] = None
+    if "excel_metadata" not in st.session_state:
+        st.session_state["excel_metadata"] = None
     if "load_warnings" not in st.session_state:
         st.session_state["load_warnings"] = []
     if "current_nav" not in st.session_state:
@@ -214,47 +289,169 @@ def init_session_state() -> None:
 init_session_state()
 
 
-def handle_file_upload(uploaded_file: Any) -> None:
-    """Process an uploaded file or sample dataset and update session state."""
+def handle_csv_upload(file_input: Any) -> None:
+    """Load a CSV file into session state."""
     try:
-        res = load_csv_detailed(uploaded_file)
+        res = load_csv_detailed(file_input)
         st.session_state["df"] = res.df
         st.session_state["dataset_name"] = res.metadata.filename
+        st.session_state["dataset_format"] = "CSV"
+        st.session_state["active_worksheet"] = None
+        st.session_state["excel_raw_bytes"] = None
+        st.session_state["excel_metadata"] = None
         st.session_state["load_warnings"] = res.metadata.warnings
         st.toast(f"Loaded '{res.metadata.filename}' successfully!", icon="✅")
     except CSVEmptyError as e:
-        st.error(f"⚠️ Empty CSV Error: {str(e)}")
+        st.error(f"⚠️ Empty CSV: {str(e)}")
     except CSVSizeLimitExceededError as e:
         st.error(f"⛔ File Size Limit Exceeded: {str(e)}")
     except CSVParsingError as e:
-        st.error(f"❌ Parsing Error: {str(e)}")
+        st.error(f"❌ CSV Parsing Error: {str(e)}")
     except CSVEncodingError as e:
-        st.error(f"🔤 Encoding Error: {str(e)}")
+        st.error(f"🔤 CSV Encoding Error: {str(e)}")
     except Exception as e:
-        st.error(f"An unexpected error occurred while loading the file: {str(e)}")
+        st.error(f"Error loading CSV: {str(e)}")
 
 
-def load_sample_dataset() -> None:
-    """Load the built-in sample Superstore dataset."""
-    if SAMPLE_DATA_PATH.exists():
-        handle_file_upload(SAMPLE_DATA_PATH)
+def handle_excel_upload(file_input: Any, sheet_name: Optional[str] = None, header_row: int = 0) -> None:
+    """Inspect and load an Excel workbook into session state."""
+    try:
+        # Cache raw bytes for fast worksheet switching without re-uploading
+        if hasattr(file_input, "read"):
+            raw_bytes = file_input.read()
+            if hasattr(file_input, "seek"):
+                file_input.seek(0)
+            st.session_state["excel_raw_bytes"] = raw_bytes
+            wb_meta = inspect_excel_workbook(raw_bytes, filename=getattr(file_input, "name", "workbook.xlsx"))
+        elif isinstance(file_input, (str, Path)):
+            wb_meta = inspect_excel_workbook(file_input)
+            st.session_state["excel_raw_bytes"] = Path(file_input).read_bytes()
+        else:
+            wb_meta = inspect_excel_workbook(file_input)
+
+        st.session_state["excel_metadata"] = wb_meta
+        st.session_state["dataset_name"] = wb_meta.filename
+        st.session_state["dataset_format"] = f"Excel ({wb_meta.file_format})"
+
+        target_sheet = sheet_name if sheet_name else wb_meta.sheet_names[0]
+        res = load_excel_sheet(
+            st.session_state["excel_raw_bytes"],
+            sheet_name=target_sheet,
+            header_row=header_row,
+        )
+
+        st.session_state["df"] = res.df
+        st.session_state["active_worksheet"] = target_sheet
+        st.session_state["load_warnings"] = res.metadata.warnings
+        st.toast(f"Loaded Excel sheet '{target_sheet}' from '{wb_meta.filename}'!", icon="📊")
+
+    except ExcelUnsupportedFormatError as e:
+        st.error(f"⚠️ Unsupported Format: {str(e)}")
+    except ExcelCorruptedError as e:
+        st.error(f"❌ Corrupted Workbook: {str(e)}")
+    except ExcelEmptyWorkbookError as e:
+        st.error(f"⚠️ Empty Workbook: {str(e)}")
+    except ExcelEmptySheetError as e:
+        st.error(f"⚠️ Empty Worksheet: {str(e)}")
+    except ExcelSheetNotFoundError as e:
+        st.error(f"❌ Sheet Not Found: {str(e)}")
+    except CSVSizeLimitExceededError as e:
+        st.error(f"⛔ File Size Limit Exceeded: {str(e)}")
+    except Exception as e:
+        st.error(f"Error loading Excel workbook: {str(e)}")
+
+
+def switch_excel_sheet(target_sheet: str, header_row: int = 0) -> None:
+    """Switch active worksheet from the currently loaded workbook buffer."""
+    if st.session_state["excel_raw_bytes"] is None:
+        st.error("No Excel workbook buffer found in session.")
+        return
+    try:
+        res = load_excel_sheet(
+            st.session_state["excel_raw_bytes"],
+            sheet_name=target_sheet,
+            header_row=header_row,
+        )
+        st.session_state["df"] = res.df
+        st.session_state["active_worksheet"] = target_sheet
+        st.session_state["load_warnings"] = res.metadata.warnings
+        st.toast(f"Switched to worksheet '{target_sheet}'!", icon="🔄")
+    except Exception as e:
+        st.error(f"Error switching to worksheet '{target_sheet}': {str(e)}")
+
+
+def load_sample_csv() -> None:
+    """Load the built-in sample Superstore CSV."""
+    if SAMPLE_CSV_PATH.exists():
+        handle_csv_upload(SAMPLE_CSV_PATH)
     else:
-        st.error("Sample dataset file not found on disk.")
+        st.error("Sample CSV file not found on disk.")
+
+
+def load_sample_excel() -> None:
+    """Load the built-in multi-sheet sample Excel workbook."""
+    if SAMPLE_EXCEL_PATH.exists():
+        handle_excel_upload(SAMPLE_EXCEL_PATH, sheet_name="Orders_Data")
+    else:
+        st.error("Sample Excel workbook not found on disk.")
 
 
 # ============================================================
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.markdown("### 📊 CSV Explorer")
-    st.caption("Interactive EDA & Data Profiling")
+    # Sleek geometric logo & branding
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2px;">
+            <span style="font-size: 1.7rem; color: #8B7CFF;">◈</span>
+            <span class="brand-mark">Analytix</span>
+        </div>
+        <div class="brand-tagline">Explore data. Discover insights.</div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.divider()
 
-    # Active dataset badge or indicator
+    # Active dataset status widget
     if st.session_state["df"] is not None:
         df_active = st.session_state["df"]
-        st.markdown(f"**Dataset**: `{st.session_state['dataset_name']}`")
-        st.caption(f"{len(df_active):,} rows × {len(df_active.columns):,} cols")
+        fmt_badge = (
+            f'<span class="badge-format">{st.session_state["dataset_format"]}</span>'
+        )
+        st.markdown(
+            f"**File**: `{st.session_state['dataset_name']}` {fmt_badge}",
+            unsafe_allow_html=True,
+        )
+
+        if st.session_state["active_worksheet"]:
+            sheet_badge = (
+                f'<span class="badge-sheet">Sheet: {st.session_state["active_worksheet"]}</span>'
+            )
+            st.markdown(f"{sheet_badge}", unsafe_allow_html=True)
+
+        st.caption(f"{len(df_active):,} rows × {len(df_active.columns):,} columns")
+
+        # Fast sheet switcher in sidebar if an Excel workbook is active
+        if (
+            st.session_state["excel_metadata"] is not None
+            and st.session_state["excel_metadata"].total_sheets > 1
+        ):
+            wb_meta: WorkbookMetadata = st.session_state["excel_metadata"]
+            cur_idx = (
+                wb_meta.sheet_names.index(st.session_state["active_worksheet"])
+                if st.session_state["active_worksheet"] in wb_meta.sheet_names
+                else 0
+            )
+            new_sheet = st.selectbox(
+                "Active Sheet",
+                options=wb_meta.sheet_names,
+                index=cur_idx,
+                key="sidebar_sheet_select",
+            )
+            if new_sheet != st.session_state["active_worksheet"]:
+                switch_excel_sheet(new_sheet)
+                st.rerun()
 
         if st.session_state["load_warnings"]:
             with st.expander("⚠️ Ingestion Notices", expanded=False):
@@ -263,68 +460,96 @@ with st.sidebar:
 
         st.divider()
 
-        # Primary Navigation
-        nav_options = [
-            "Overview",
-            "Data Preview",
-            "Data Quality",
-            "Statistics",
-            "Visualizations",
-            "Outliers",
-            "Export Report",
-        ]
+        # Categorized Navigation
+        st.markdown('<div class="nav-category">WORKSPACE</div>', unsafe_allow_html=True)
+        nav_workspace = ["Overview"]
+
+        st.markdown('<div class="nav-category">EXPLORE</div>', unsafe_allow_html=True)
+        nav_explore = ["Data Explorer", "Excel Explorer", "Data Preview"]
+
+        st.markdown('<div class="nav-category">ANALYZE</div>', unsafe_allow_html=True)
+        nav_analyze = ["Data Quality", "Statistics", "Visualizations", "Outlier Analysis"]
+
+        st.markdown('<div class="nav-category">EXPORT</div>', unsafe_allow_html=True)
+        nav_export = ["Export Reports"]
+
+        all_nav_items = nav_workspace + nav_explore + nav_analyze + nav_export
+
+        current_idx = (
+            all_nav_items.index(st.session_state["current_nav"])
+            if st.session_state["current_nav"] in all_nav_items
+            else 0
+        )
         selected_nav = st.radio(
-            "Navigation",
-            options=nav_options,
-            index=nav_options.index(st.session_state["current_nav"])
-            if st.session_state["current_nav"] in nav_options
-            else 0,
+            "Navigation Menu",
+            options=all_nav_items,
+            index=current_idx,
             label_visibility="collapsed",
         )
         st.session_state["current_nav"] = selected_nav
 
         st.divider()
 
-        # Upload / Replace dataset action
-        st.markdown("#### Replace Dataset")
-        new_file = st.file_uploader(
-            "Upload new CSV",
-            type=["csv"],
-            key="replace_uploader",
+        # Dataset Management Actions
+        st.markdown("#### Manage Dataset")
+        replace_file = st.file_uploader(
+            "Upload new dataset",
+            type=["csv", "xlsx", "xls"],
+            key="sidebar_replace_uploader",
             label_visibility="collapsed",
         )
-        if new_file is not None:
-            if new_file.name != st.session_state["dataset_name"]:
-                handle_file_upload(new_file)
+        if replace_file is not None:
+            if replace_file.name != st.session_state["dataset_name"]:
+                fn_lower = replace_file.name.lower()
+                if fn_lower.endswith(".csv"):
+                    handle_csv_upload(replace_file)
+                else:
+                    handle_excel_upload(replace_file)
                 st.rerun()
 
-        if st.button("🔄 Reload Sample Data", use_container_width=True):
-            load_sample_dataset()
-            st.rerun()
+        col_clr1, col_clr2 = st.columns(2)
+        with col_clr1:
+            if st.button("🔄 Samples", use_container_width=True, help="Reload sample dataset"):
+                if "Excel" in st.session_state["dataset_format"]:
+                    load_sample_excel()
+                else:
+                    load_sample_csv()
+                st.rerun()
+        with col_clr2:
+            if st.button("🗑️ Clear", use_container_width=True, help="Clear active dataset"):
+                st.session_state["df"] = None
+                st.session_state["dataset_name"] = None
+                st.session_state["active_worksheet"] = None
+                st.session_state["excel_raw_bytes"] = None
+                st.session_state["excel_metadata"] = None
+                st.session_state["load_warnings"] = []
+                st.session_state["current_nav"] = "Overview"
+                st.rerun()
 
-        if st.button("🗑️ Clear Current Data", use_container_width=True):
-            st.session_state["df"] = None
-            st.session_state["dataset_name"] = None
-            st.session_state["load_warnings"] = []
-            st.rerun()
     else:
-        st.info("No dataset currently loaded. Upload a CSV or load the sample data to get started.")
-        if st.button("✨ Load Sample Dataset", use_container_width=True, type="primary"):
-            load_sample_dataset()
-            st.rerun()
+        st.info("No dataset loaded. Upload a CSV or Excel file, or launch a built-in sample dataset.")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            if st.button("📄 Sample CSV", use_container_width=True, type="primary"):
+                load_sample_csv()
+                st.rerun()
+        with col_s2:
+            if st.button("📊 Sample Excel", use_container_width=True):
+                load_sample_excel()
+                st.rerun()
 
     st.divider()
 
-    # Privacy notice
+    # Privacy notice & footer
     st.markdown("#### 🔒 Privacy Notice")
     st.caption(
-        "Your CSV is processed by this application for analysis in memory. "
+        "Your data is processed in memory by this application. "
         "Do not upload confidential, personal, or sensitive information. "
         "Uploaded data is not stored persistently by this application."
     )
 
     st.markdown("---")
-    st.caption(f"CSV Explorer v{APP_VERSION} • Built with Streamlit & Plotly")
+    st.caption(f"Analytix v{APP_VERSION} • Built with Streamlit, pandas & Plotly")
 
 
 # ============================================================
@@ -338,117 +563,135 @@ df: pd.DataFrame | None = st.session_state["df"]
 # ------------------------------------------------------------
 if df is None:
     st.markdown(
-        """
+        f"""
         <div class="hero-box">
-            <div class="hero-title">CSV Explorer</div>
-            <div class="hero-subtitle">Understand your data before you build with it.</div>
+            <div class="hero-title">Welcome to {APP_TITLE}</div>
+            <div class="hero-subtitle">{APP_TAGLINE}</div>
             <div class="hero-desc">
-                Upload a CSV file to explore its structure, identify data quality issues,
-                discover patterns, and generate an interactive EDA report.
+                Analytix helps you explore datasets, understand data quality,
+                calculate statistics, visualize patterns, and inspect multi-sheet
+                Excel workbooks through a simple interactive interface.
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    col_upload, col_sample = st.columns([3, 2], gap="large")
+    col_up_csv, col_up_excel, col_samples = st.columns([3, 3, 3], gap="medium")
 
-    with col_upload:
+    with col_up_csv:
         st.markdown(
             """
-            <div class="eda-card">
-                <div class="eda-card-title">📁 Upload Your Dataset</div>
-                <div class="eda-card-subtitle">
-                    Select a CSV file from your computer. Headers are expected in the first row.
+            <div class="analytix-card">
+                <div class="analytix-card-title">📄 CSV Data Explorer</div>
+                <div class="analytix-card-subtitle">
+                    Upload comma or delimiter-separated tabular files with automatic encoding detection.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        uploaded = st.file_uploader(
+        uploaded_csv = st.file_uploader(
             "Choose a CSV file",
             type=["csv"],
-            key="home_uploader",
+            key="home_csv_uploader",
             help="Files are analyzed in memory up to 100 MB.",
         )
-        if uploaded is not None:
-            handle_file_upload(uploaded)
+        if uploaded_csv is not None:
+            handle_csv_upload(uploaded_csv)
             st.rerun()
 
-        st.caption(
-            "ℹ️ Files are parsed strictly in memory. Supported encodings: UTF-8, UTF-8 BOM, Latin-1, CP1252."
-        )
-
-    with col_sample:
+    with col_up_excel:
         st.markdown(
             """
-            <div class="eda-card">
-                <div class="eda-card-title">⚡ Try Built-in Sample Data</div>
-                <div class="eda-card-subtitle">
-                    Test all analysis features instantly with our curated e-commerce dataset.
+            <div class="analytix-card">
+                <div class="analytix-card-title">📊 Excel Explorer (.xlsx, .xls)</div>
+                <div class="analytix-card-subtitle">
+                    Upload modern or legacy Excel workbooks with multi-worksheet discovery.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+        uploaded_excel = st.file_uploader(
+            "Choose an Excel file",
+            type=["xlsx", "xls"],
+            key="home_excel_uploader",
+            help="Supports modern .xlsx and legacy .xls workbooks.",
+        )
+        if uploaded_excel is not None:
+            handle_excel_upload(uploaded_excel)
+            st.rerun()
+
+    with col_samples:
         st.markdown(
             """
-            **Dataset Features**:
-            - 122 transaction records & 16 columns
-            - Realistic numeric, categorical, and date variables
-            - Built-in data quality edge cases (nulls, duplicates, constant status)
-            - Intentional positive and negative margin outliers
-            """
+            <div class="analytix-card">
+                <div class="analytix-card-title">⚡ Instant Sample Workbooks</div>
+                <div class="analytix-card-subtitle">
+                    Try all features immediately with curated offline datasets.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-        if st.button("🚀 Load Sample Superstore Data", type="primary", use_container_width=True):
-            load_sample_dataset()
+        if st.button("🚀 Load Multi-Sheet Excel (3 sheets)", use_container_width=True, type="primary"):
+            load_sample_excel()
+            st.rerun()
+
+        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+        if st.button("📄 Load Sample CSV (Superstore)", use_container_width=True):
+            load_sample_csv()
             st.rerun()
 
     st.markdown("---")
-    st.markdown("### 🛠️ What CSV Explorer Does For You")
+    st.markdown("### 🛠️ Platform Capabilities")
 
-    f1, f2, f3, f4 = st.columns(4)
-    with f1:
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
         st.markdown(
             """
-            **1. Structural Overview**  
-            Instant dimension profiling, memory usage, and automatic semantic column type classification.
+            **1. Multi-Sheet Excel Explorer**  
+            Inspect workbook metadata, preview individual sheets, and analyze them through the complete EDA engine.
             """
         )
-    with f2:
+    with c2:
         st.markdown(
             """
-            **2. Data Quality Audit**  
-            Transparent detection of missing cells, exact duplicated records, and constant zero-variance columns.
+            **2. Data Quality Diagnostics**  
+            Automated auditing of missing values, exact duplicates, and constant zero-variance columns with heuristic health score.
             """
         )
-    with f3:
+    with c3:
         st.markdown(
             """
-            **3. Statistical Depth**  
-            Rigorous numeric descriptive statistics (mean, median, IQR, skewness) and categorical mode distributions.
+            **3. In-Depth Statistics**  
+            Sample-based numeric descriptive statistics (mean, median, IQR, skewness) and categorical frequency distributions.
             """
         )
-    with f4:
+    with c4:
         st.markdown(
             """
-            **4. Outliers & Visuals**  
-            Interactive Plotly charts, correlation matrices, and mathematical IQR outlier detection with CSV/JSON export.
+            **4. Outliers & Reports**  
+            Interquartile range mathematical outlier flags and one-click exports to CSV and consolidated JSON reports.
             """
         )
 
 # ------------------------------------------------------------
-# LOADED DATASET: SECTIONS
+# LOADED DATASET SECTIONS
 # ------------------------------------------------------------
 else:
     section = st.session_state["current_nav"]
 
     # ========================================================
-    # SECTION 1: OVERVIEW
+    # SECTION: OVERVIEW
     # ========================================================
     if section == "Overview":
         st.subheader("📊 Dataset Overview")
-        st.caption(f"High-level structural audit of `{st.session_state['dataset_name']}`")
+        ds_info = f"`{st.session_state['dataset_name']}`"
+        if st.session_state["active_worksheet"]:
+            ds_info += f" • Sheet: **{st.session_state['active_worksheet']}**"
+        st.caption(f"Structural and integrity overview of {ds_info}")
 
         overview = get_dataset_overview(df)
 
@@ -459,7 +702,11 @@ else:
         m3.metric("Memory Usage", overview.memory_usage_formatted)
         m4.metric("Numeric Cols", len(overview.numeric_columns))
         m5.metric("Categorical Cols", len(overview.categorical_columns))
-        m6.metric("Missing Cells", f"{overview.missing_cells_pct:.1f}%", help=f"{overview.total_missing_cells:,} total null cells")
+        m6.metric(
+            "Missing Cells",
+            f"{overview.missing_cells_pct:.1f}%",
+            help=f"{overview.total_missing_cells:,} total null cells",
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -467,9 +714,9 @@ else:
         with col_left:
             st.markdown(
                 """
-                <div class="eda-card">
-                    <div class="eda-card-title">🧩 Variable Type Breakdown</div>
-                    <div class="eda-card-subtitle">Automatic semantic classification of column types</div>
+                <div class="analytix-card">
+                    <div class="analytix-card-title">🧩 Variable Type Breakdown</div>
+                    <div class="analytix-card-subtitle">Automatic semantic classification of column types</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -490,14 +737,17 @@ else:
         with col_right:
             st.markdown(
                 """
-                <div class="eda-card">
-                    <div class="eda-card-title">⚡ Quick Dataset Summary</div>
-                    <div class="eda-card-subtitle">Key dimensions and integrity markers</div>
+                <div class="analytix-card">
+                    <div class="analytix-card-title">⚡ Integrity Summary</div>
+                    <div class="analytix-card-subtitle">Key dimensions and integrity markers</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
             st.write(f"- **Total Data Cells**: {overview.total_cells:,}")
+            st.write(f"- **Format**: {st.session_state['dataset_format']}")
+            if st.session_state["active_worksheet"]:
+                st.write(f"- **Active Worksheet**: `{st.session_state['active_worksheet']}`")
             st.write(f"- **Missing Value Cells**: {overview.total_missing_cells:,} ({overview.missing_cells_pct}%)")
             st.write(f"- **Duplicate Rows**: {overview.total_duplicate_rows:,} ({overview.duplicate_rows_pct}%)")
             st.write(
@@ -509,11 +759,142 @@ else:
         st.dataframe(meta_df, use_container_width=True, hide_index=True)
 
     # ========================================================
-    # SECTION 2: DATA PREVIEW
+    # SECTION: EXCEL EXPLORER
+    # ========================================================
+    elif section == "Excel Explorer":
+        st.subheader("📊 Excel Explorer")
+        st.caption("Inspect multi-sheet Excel workbooks (.xlsx, .xls), switch worksheets, and explore contents.")
+
+        if st.session_state["excel_metadata"] is not None:
+            wb_meta: WorkbookMetadata = st.session_state["excel_metadata"]
+
+            # Workbook Header Card
+            st.markdown(
+                f"""
+                <div class="analytix-card">
+                    <div class="analytix-card-title">📁 Workbook: {wb_meta.filename}</div>
+                    <div class="analytix-card-subtitle">
+                        Format: {wb_meta.file_format} &bull; Total Worksheets: {wb_meta.total_sheets} &bull; File Size: {wb_meta.file_size_bytes / 1024:.1f} KB
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Worksheet selection & configuration controls
+            ctrl_c1, ctrl_c2, ctrl_c3 = st.columns([3, 2, 2])
+            with ctrl_c1:
+                cur_sheet = st.session_state["active_worksheet"] or wb_meta.sheet_names[0]
+                sheet_idx = wb_meta.sheet_names.index(cur_sheet) if cur_sheet in wb_meta.sheet_names else 0
+                selected_sheet = st.selectbox(
+                    "Select Worksheet to Analyze",
+                    options=wb_meta.sheet_names,
+                    index=sheet_idx,
+                    help="Switching worksheets updates analysis across all sections.",
+                )
+            with ctrl_c2:
+                header_row_choice = st.number_input(
+                    "Header Row Index",
+                    min_value=0,
+                    max_value=10,
+                    value=0,
+                    help="Row index containing column headers (0 is first row).",
+                )
+            with ctrl_c3:
+                st.write("")
+                st.write("")
+                if st.button("Apply / Switch Sheet", type="primary", use_container_width=True):
+                    switch_excel_sheet(selected_sheet, header_row=header_row_choice)
+                    st.rerun()
+
+            # Automatically switch if user changed dropdown
+            if selected_sheet != st.session_state["active_worksheet"]:
+                switch_excel_sheet(selected_sheet, header_row=header_row_choice)
+                st.rerun()
+
+            # Worksheet Summary Cards
+            st.markdown("#### Available Worksheets")
+            sheet_cols = st.columns(min(len(wb_meta.sheets), 4))
+            for i, s in enumerate(wb_meta.sheets):
+                with sheet_cols[i % len(sheet_cols)]:
+                    active_style = (
+                        "border-color: #8B7CFF; background-color: #1B2030;"
+                        if s.name == st.session_state["active_worksheet"]
+                        else ""
+                    )
+                    empty_indicator = " (Empty)" if s.is_empty else ""
+                    st.markdown(
+                        f"""
+                        <div class="analytix-card" style="padding: 12px 16px; margin-bottom: 10px; {active_style}">
+                            <strong>{s.name}{empty_indicator}</strong><br>
+                            <span style="font-size: 0.8rem; color: #A3A9BA;">
+                                ~{s.row_count} rows &bull; {s.col_count} cols
+                            </span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+            st.divider()
+
+            # Selected Sheet Data Preview
+            st.markdown(f"### 🔍 Previewing Worksheet: `{st.session_state['active_worksheet']}`")
+            st.caption(f"Showing records for active sheet ({len(df):,} rows × {len(df.columns)} columns)")
+
+            p_rows = st.slider("Preview Rows", min_value=5, max_value=50, value=10, step=5, key="excel_preview_slider")
+            st.dataframe(df.head(p_rows), use_container_width=True)
+
+        else:
+            st.info("Currently loaded dataset is not an Excel workbook. Upload an Excel file below to explore.")
+            new_excel = st.file_uploader(
+                "Upload Excel Workbook (.xlsx, .xls)",
+                type=["xlsx", "xls"],
+                key="excel_page_uploader",
+            )
+            if new_excel is not None:
+                handle_excel_upload(new_excel)
+                st.rerun()
+
+            if st.button("🚀 Load Sample Multi-Sheet Excel Workbook"):
+                load_sample_excel()
+                st.rerun()
+
+    # ========================================================
+    # SECTION: DATA EXPLORER
+    # ========================================================
+    elif section == "Data Explorer":
+        st.subheader("📄 Data Explorer")
+        st.caption("Inspect tabular dataset attributes, replace or upload new CSV datasets.")
+
+        st.markdown(
+            f"""
+            <div class="analytix-card">
+                <div class="analytix-card-title">Dataset: {st.session_state['dataset_name']}</div>
+                <div class="analytix-card-subtitle">
+                    Format: {st.session_state['dataset_format']} &bull; Dimensions: {len(df):,} rows × {len(df.columns)} columns
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.dataframe(df.head(15), use_container_width=True)
+
+        st.markdown("#### Upload Alternate CSV Dataset")
+        new_csv = st.file_uploader("Upload CSV", type=["csv"], key="csv_page_uploader")
+        if new_csv is not None:
+            handle_csv_upload(new_csv)
+            st.rerun()
+
+    # ========================================================
+    # SECTION: DATA PREVIEW
     # ========================================================
     elif section == "Data Preview":
         st.subheader("🔍 Data Preview & Column Inspection")
-        st.caption(f"Inspect raw records and field distributions in `{st.session_state['dataset_name']}`")
+        ds_label = f"`{st.session_state['dataset_name']}`"
+        if st.session_state["active_worksheet"]:
+            ds_label += f" ({st.session_state['active_worksheet']})"
+        st.caption(f"Inspect raw records and field distributions in {ds_label}")
 
         ctrl_col1, ctrl_col2 = st.columns([2, 4])
         with ctrl_col1:
@@ -544,7 +925,7 @@ else:
             st.write(sample_values)
 
     # ========================================================
-    # SECTION 3: DATA QUALITY
+    # SECTION: DATA QUALITY
     # ========================================================
     elif section == "Data Quality":
         st.subheader("🛡️ Data Quality Diagnostic Audit")
@@ -561,7 +942,7 @@ else:
 
         quality_report = generate_data_quality_report(df, nearly_empty_threshold_pct=threshold_val)
 
-        # Status and Score Banner
+        # Status & Score Banner
         b1, b2, b3 = st.columns([2, 2, 4])
         with b1:
             if "No major issues" in quality_report.status:
@@ -584,12 +965,16 @@ else:
         if quality_report.issues:
             st.markdown("#### ⚠️ Identified Quality Issues")
             for issue in quality_report.issues:
-                sev_color = "#36C98F" if issue.severity == IssueSeverity.INFO else ("#F5B942" if issue.severity == IssueSeverity.WARNING else "#F07178")
+                sev_color = (
+                    "#35C98F"
+                    if issue.severity == IssueSeverity.INFO
+                    else ("#F3BB57" if issue.severity == IssueSeverity.WARNING else "#F07885")
+                )
                 st.markdown(
                     f"""
-                    <div style="border-left: 4px solid {sev_color}; padding-left: 14px; margin-bottom: 12px; background: #151923; padding: 12px 16px; border-radius: 4px;">
-                        <strong style="color: #F5F7FA;">{issue.title}</strong> [{issue.severity.value}]<br>
-                        <span style="color: #A3ADBD; font-size: 0.9rem;">{issue.description}</span>
+                    <div style="border-left: 4px solid {sev_color}; padding-left: 14px; margin-bottom: 12px; background: #151824; padding: 12px 16px; border-radius: 4px;">
+                        <strong style="color: #F5F6FA;">{issue.title}</strong> [{issue.severity.value}]<br>
+                        <span style="color: #A3A9BA; font-size: 0.9rem;">{issue.description}</span>
                         {f'<br><span style="color: #8B7CFF; font-size: 0.85rem;">Affected: {", ".join(issue.affected_columns)}</span>' if issue.affected_columns else ''}
                     </div>
                     """,
@@ -609,7 +994,11 @@ else:
             st.plotly_chart(fig_missing, use_container_width=True)
 
             show_all_cols = st.checkbox("Show all columns (including 0% missing)", value=False)
-            table_to_show = m_sum.detail_table if show_all_cols else m_sum.detail_table[m_sum.detail_table["Missing Count"] > 0]
+            table_to_show = (
+                m_sum.detail_table
+                if show_all_cols
+                else m_sum.detail_table[m_sum.detail_table["Missing Count"] > 0]
+            )
             st.dataframe(table_to_show, use_container_width=True, hide_index=True)
         else:
             st.info("No missing values detected. Every column in this dataset is 100% complete!")
@@ -627,7 +1016,7 @@ else:
         if d_sum.total_duplicates > 0:
             st.markdown("**Preview of Duplicated Rows**:")
             st.dataframe(d_sum.duplicate_rows_preview, use_container_width=True)
-            st.caption("Notice: CSV Explorer only audits duplicate rows. Your dataset has not been modified.")
+            st.caption("Notice: Analytix only audits duplicate rows. Your dataset has not been modified.")
         else:
             st.info("No duplicate rows found. Every record is unique.")
 
@@ -653,7 +1042,7 @@ else:
             st.error(f"Entirely empty columns (100% missing): {v_sum.entirely_empty_columns}")
 
     # ========================================================
-    # SECTION 4: STATISTICS
+    # SECTION: STATISTICS
     # ========================================================
     elif section == "Statistics":
         st.subheader("📈 Statistical Analysis")
@@ -696,9 +1085,11 @@ else:
                     )
 
         with stat_tab_cat:
-            cat_cols = [c for c in df.columns if c not in get_numeric_columns(df) and not pd.api.types.is_bool_dtype(df[c])]
+            cat_cols = [
+                c for c in df.columns
+                if c not in get_numeric_columns(df) and not pd.api.types.is_bool_dtype(df[c])
+            ]
             if not cat_cols:
-                # If no strict object column, allow selecting any column
                 cat_cols = list(df.columns)
 
             chosen_cat = st.selectbox("Select categorical column", options=cat_cols)
@@ -734,11 +1125,11 @@ else:
                 )
 
     # ========================================================
-    # SECTION 5: VISUALIZATIONS
+    # SECTION: VISUALIZATIONS
     # ========================================================
     elif section == "Visualizations":
         st.subheader("📉 Interactive Visualizations")
-        st.caption("Responsive Plotly charts rendered directly from your uploaded data.")
+        st.caption("Responsive Plotly charts rendered directly from your active dataset.")
 
         vtab_hist, vtab_box, vtab_bar, vtab_corr = st.tabs([
             "📊 Histogram",
@@ -782,8 +1173,8 @@ else:
                     fig_box = create_box_plot(df, box_col, points_mode=points_opt)
                     st.plotly_chart(fig_box, use_container_width=True)
                     st.info(
-                        f"💡 The box plot shows the median line, upper/lower quartiles (Q1, Q3), "
-                        f"whiskers, and potential outlier points in **{box_col}**. Outliers require analytical investigation."
+                        f"💡 The box plot shows the median line, quartiles (Q1, Q3), "
+                        f"spread whiskers, and potential outlier points in **{box_col}**."
                     )
 
         with vtab_bar:
@@ -817,17 +1208,17 @@ else:
                     fig_corr = create_correlation_heatmap(df, columns=selected_corr_cols, method=corr_method)
                     st.plotly_chart(fig_corr, use_container_width=True)
                     st.info(
-                        "💡 **Mentor Note**: Correlation measures linear association between -1.0 (strong inverse) "
-                        "and +1.0 (strong direct). Correlation does **not** imply causation!"
+                        "💡 **Mentor Note**: Correlation measures linear association between -1.0 (inverse) "
+                        "and +1.0 (direct). Correlation does **not** imply causation!"
                     )
                 else:
                     st.info("Select at least 2 columns to calculate correlation.")
 
     # ========================================================
-    # SECTION 6: OUTLIERS
+    # SECTION: OUTLIER ANALYSIS
     # ========================================================
-    elif section == "Outliers":
-        st.subheader("🎯 Outlier Detection (Interquartile Range Method)")
+    elif section == "Outlier Analysis":
+        st.subheader("🎯 Outlier Analysis (Interquartile Range Method)")
         st.caption("Mathematical IQR outlier detection identifying observations outside expected statistical spread.")
 
         with st.expander("📐 How the Interquartile Range (IQR) Rule Works", expanded=True):
@@ -836,11 +1227,11 @@ else:
                 1. **First Quartile (Q1)**: 25th percentile of valid observations.
                 2. **Third Quartile (Q3)**: 75th percentile of valid observations.
                 3. **IQR**: $\\text{IQR} = Q3 - Q1$.
-                4. **Lower Bound**: $Q1 - (1.5 \\times \\text{IQR})$.
-                5. **Upper Bound**: $Q3 + (1.5 \\times \\text{IQR})$.
+                4. **Lower Bound**: $Q1 - (k \\times \\text{IQR})$.
+                5. **Upper Bound**: $Q3 + (k \\times \\text{IQR})$ (where $k=1.5$ standard, $k=3.0$ extreme).
 
-                Values falling strictly below the lower bound or above the upper bound are flagged as potential outliers.  
-                *Important: Outliers are mathematical flags, not necessarily data entry errors. They often highlight high-value sales, critical system spikes, or rare phenomena.*
+                Values falling strictly outside these boundaries are flagged as potential outliers.  
+                *Important: Outliers are mathematical flags, not necessarily errors. They often highlight key business anomalies, high-value transactions, or rare system events.*
                 """
             )
 
@@ -890,9 +1281,9 @@ else:
                     st.info(f"No observations in '{target_outlier_col}' fell outside the calculated IQR boundaries.")
 
     # ========================================================
-    # SECTION 7: EXPORT REPORT
+    # SECTION: EXPORT REPORTS
     # ========================================================
-    elif section == "Export Report":
+    elif section == "Export Reports":
         st.subheader("💾 Export Analysis & Reports")
         st.caption("Download your exploratory analysis as standalone CSV tables or a consolidated JSON audit report.")
 
@@ -906,20 +1297,24 @@ else:
         with exp_col1:
             st.markdown(
                 """
-                <div class="eda-card">
-                    <div class="eda-card-title">📄 CSV Table Exports</div>
-                    <div class="eda-card-subtitle">Download clean tabular summaries for spreadsheets or presentations</div>
+                <div class="analytix-card">
+                    <div class="analytix-card-title">📄 CSV Table Exports</div>
+                    <div class="analytix-card-subtitle">Download clean tabular summaries for presentations or spreadsheets</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+
+            file_prefix = st.session_state["dataset_name"].replace(".xlsx", "").replace(".csv", "").replace(".xls", "")
+            if st.session_state["active_worksheet"]:
+                file_prefix += f"_{st.session_state['active_worksheet']}"
 
             # 1. Dataset Overview / Metadata
             overview_csv = export_dataframe_to_csv(meta_df)
             st.download_button(
                 "📥 Column Metadata & Overview (CSV)",
                 data=overview_csv,
-                file_name=f"{st.session_state['dataset_name']}_column_metadata.csv",
+                file_name=f"{file_prefix}_column_metadata.csv",
                 mime="text/csv",
                 use_container_width=True,
             )
@@ -929,7 +1324,7 @@ else:
             st.download_button(
                 "📥 Missing Values Audit (CSV)",
                 data=quality_csv,
-                file_name=f"{st.session_state['dataset_name']}_missing_values.csv",
+                file_name=f"{file_prefix}_missing_values.csv",
                 mime="text/csv",
                 use_container_width=True,
             )
@@ -940,7 +1335,7 @@ else:
                 st.download_button(
                     "📥 Numeric Descriptive Statistics (CSV)",
                     data=stats_csv,
-                    file_name=f"{st.session_state['dataset_name']}_numeric_statistics.csv",
+                    file_name=f"{file_prefix}_numeric_statistics.csv",
                     mime="text/csv",
                     use_container_width=True,
                 )
@@ -951,7 +1346,7 @@ else:
                 st.download_button(
                     "📥 Flagged Duplicate Rows (CSV)",
                     data=dup_csv,
-                    file_name=f"{st.session_state['dataset_name']}_duplicate_rows.csv",
+                    file_name=f"{file_prefix}_duplicate_rows.csv",
                     mime="text/csv",
                     use_container_width=True,
                 )
@@ -959,17 +1354,16 @@ else:
         with exp_col2:
             st.markdown(
                 """
-                <div class="eda-card">
-                    <div class="eda-card-title">📦 Consolidated JSON EDA Report</div>
-                    <div class="eda-card-subtitle">
-                        Comprehensive programmatic audit summary including dimensions, data quality, and statistics.
+                <div class="analytix-card">
+                    <div class="analytix-card-title">📦 Consolidated JSON EDA Report</div>
+                    <div class="analytix-card-subtitle">
+                        Comprehensive programmatic audit summary with format and worksheet metadata.
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Prepare report dictionary
             overview_dict = {
                 "total_rows": overview.total_rows,
                 "total_columns": overview.total_columns,
@@ -1003,12 +1397,14 @@ else:
                 column_metadata_df=meta_df,
                 quality_summary_dict=quality_dict,
                 numeric_stats_df=num_stats_df,
+                dataset_format=st.session_state["dataset_format"],
+                active_worksheet=st.session_state["active_worksheet"],
             )
 
             st.download_button(
                 "📥 Download Consolidated JSON Report",
                 data=json_report_str.encode("utf-8"),
-                file_name=f"{st.session_state['dataset_name']}_eda_report.json",
+                file_name=f"{file_prefix}_eda_report.json",
                 mime="application/json",
                 type="primary",
                 use_container_width=True,
