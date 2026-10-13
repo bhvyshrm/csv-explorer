@@ -1,36 +1,42 @@
-# Sample Dataset: Superstore EDA Transactions
+# Analytix Sample Datasets
 
-This dataset (`sample_superstore_eda.csv`) provides a realistic, multi-attribute e-commerce retail sales dataset tailored for exploratory data analysis, quality assessment, and outlier evaluation.
+This directory contains deterministic sample datasets designed to validate data ingestion, exploratory data profiling, data quality auditing, and outlier detection across multiple file formats.
 
-## Dataset Structure
+---
 
-- **Rows**: 122 observations
-- **Columns**: 16 fields
+## 1. Multi-Sheet Excel Workbook: `sample_analytix_multisheet.xlsx`
 
-## Column Descriptions
+A modern `.xlsx` workbook containing three distinct worksheets to demonstrate Analytix's **Excel Explorer** capabilities:
 
-| Column | Type | Description | Analytical Purpose |
-| :--- | :--- | :--- | :--- |
-| `Order_ID` | String | Unique order reference code | Primary identifier |
-| `Order_Date` | Date String | ISO 8601 transaction date (`YYYY-MM-DD`) | Temporal dimension |
-| `Region` | String | Geographical territory (West, East, Central, South) | Contains ~5% missing values |
-| `Customer_Segment` | String | Market segment (Consumer, Corporate, Home Office) | Categorical breakdown |
-| `Customer_Age` | Numeric | Customer age in years | Contains ~5% missing values |
-| `Category` | String | High-level product category | Categorical distribution |
-| `Sub_Category` | String | Specific product subcategory | Multi-level category analysis |
-| `Order_Priority` | String | Fulfillment priority (Critical, High, Medium, Low) | Ordinal frequency analysis |
-| `Payment_Method` | String | Transaction payment provider | Categorical distribution |
-| `Sales` | Numeric | Order total in USD | Contains intentional positive outliers |
-| `Quantity` | Integer | Units purchased (1-12) | Discrete count distribution |
-| `Discount` | Float | Promotional markdown rate (0.0 to 0.3) | Continuous rate with missing entries |
-| `Profit` | Numeric | Net profit in USD | Contains intentional negative outliers |
-| `Shipping_Cost` | Numeric | Logistics freight charge | Contains ~3% missing values |
-| `Is_Returned` | Boolean | Whether product was returned (`True`/`False`) | Binary flag |
-| `Store_Status` | String | Constant value (`"Active"`) | Validates constant column detection |
+### Sheet 1: `Orders_Data` (101 Rows, 8 Columns)
+- **`Order_ID`**: Alphanumeric order tracking code.
+- **`Order_Date`**: Datetime object verifying automatic Excel date parsing.
+- **`Region`**: Geographic segment (contains ~5% missing values).
+- **`Category`**: High-level retail category.
+- **`Sales`**: Order revenue in USD (contains extreme positive outliers up to \$4,950).
+- **`Quantity`**: Discrete purchase count (1-10 units).
+- **`Profit`**: Financial margin (contains missing values and negative margin outliers down to -\$850).
+- **`Is_Returned`**: Boolean status flag (`True`/`False`).
+- **Includes 1 duplicate row** to verify duplicate detection on Excel datasets.
 
-## Built-in Data Quality Test Cases
+### Sheet 2: `Customer_Demographics` (50 Rows, 7 Columns)
+- **`Customer_ID`**: Identifier code.
+- **`Customer_Name`**: Anonymized customer label.
+- **`Age`**: Customer age (contains null entries).
+- **`Segment`**: Market segmentation (`Consumer`, `Corporate`, `Small Business`).
+- **`Country`**: Constant value (`"United States"`) to verify zero-variance column detection on Excel sheets.
+- **`Income`**: Annual household income.
+- **`Loyalty_Years`**: Continuous tenure duration.
 
-1. **Missing Values**: Columns `Region`, `Customer_Age`, `Discount`, and `Shipping_Cost` include missing values to test null indicators and missing value charts.
-2. **Duplicate Rows**: Includes 2 exact duplicated records to test duplicate row detection.
-3. **Constant Column**: `Store_Status` contains 1 unique value across all rows to verify low-variance / constant column detection.
-4. **Outliers**: `Sales` contains extreme positive values (e.g., \$4,850 and \$5,200), and `Profit` contains significant negative margins (e.g., -\$1,250) to verify IQR outlier detection.
+### Sheet 3: `Empty_Template` (0 Rows, 3 Columns)
+- An empty template containing headers (`Template_Field_A`, `Template_Field_B`, `Template_Field_C`) and 0 data rows to test edge-case handling for blank/header-only worksheets.
+
+---
+
+## 2. CSV Dataset: `sample_superstore_eda.csv`
+
+A 122-row, 16-column retail transaction dataset formatted as standard CSV:
+- **Missing Values**: Columns `Region`, `Customer_Age`, `Discount`, and `Shipping_Cost` include intentional missing cells.
+- **Duplicate Rows**: Includes 2 exact duplicated records.
+- **Constant Column**: `Store_Status` contains 1 unique value across all rows (`"Active"`).
+- **Outliers**: Extreme values in `Sales` (\$5,200) and `Profit` (-\$1,250).
