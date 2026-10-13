@@ -1,0 +1,123 @@
+Order_ID,Order_Date,Region,Customer_Segment,Customer_Age,Category,Sub_Category,Order_Priority,Payment_Method,Sales,Quantity,Discount,Profit,Shipping_Cost,Is_Returned,Store_Status
+ORD-2024-1000,2024-01-01,,Corporate,42.0,Furniture,Tables,High,Direct Debit,37.43,5,0.3,-21.76,27.95,False,Active
+ORD-2024-1001,2024-01-04,East,Consumer,63.0,Office Supplies,Art,High,Wire Transfer,138.1,5,0.1,-18.15,23.06,False,Active
+ORD-2024-1002,2024-01-07,South,Consumer,53.0,Office Supplies,Storage,Critical,Credit Card,229.53,3,0.1,-43.9,38.71,True,Active
+ORD-2024-1003,2024-01-10,West,Consumer,66.0,Furniture,Bookcases,High,Direct Debit,149.01,11,0.0,15.39,24.96,True,Active
+ORD-2024-1004,2024-01-13,West,Consumer,24.0,Technology,Laptops,Medium,Wire Transfer,50.74,10,0.0,-44.03,18.66,False,Active
+ORD-2024-1005,2024-01-16,Central,Corporate,37.0,Technology,Phones,Medium,Credit Card,4850.0,4,0.0,934.16,405.55,False,Active
+ORD-2024-1006,2024-01-19,South,Consumer,48.0,Technology,Phones,Medium,Direct Debit,20.47,9,0.2,-35.7,24.11,False,Active
+ORD-2024-1007,2024-01-22,South,Home Office,25.0,Office Supplies,Storage,Critical,Direct Debit,384.9,10,0.0,30.25,55.47,False,Active
+ORD-2024-1008,2024-01-25,East,Consumer,28.0,Furniture,Bookcases,Low,PayPal,35.89,9,0.0,-27.36,,False,Active
+ORD-2024-1009,2024-01-28,South,Consumer,59.0,Office Supplies,Storage,Medium,Credit Card,183.71,2,0.0,55.9,28.05,False,Active
+ORD-2024-1010,2024-01-31,South,Consumer,50.0,Technology,Printers,Medium,Credit Card,791.7,8,0.1,-52.7,76.76,False,Active
+ORD-2024-1011,2024-02-03,South,Consumer,52.0,Office Supplies,Appliances,Medium,Wire Transfer,158.45,8,0.3,-54.72,32.43,False,Active
+ORD-2024-1012,2024-02-06,Central,Home Office,46.0,Office Supplies,Storage,Critical,PayPal,483.96,7,0.0,-1250.0,48.49,False,Active
+ORD-2024-1013,2024-02-09,Central,Corporate,33.0,Technology,Accessories,Critical,PayPal,68.48,8,0.0,-5.29,12.69,False,Active
+ORD-2024-1014,2024-02-12,Central,Corporate,,Technology,Accessories,Medium,PayPal,276.85,3,0.15,91.63,34.24,False,Active
+ORD-2024-1015,2024-02-15,East,Corporate,55.0,Technology,Laptops,Critical,PayPal,156.39,6,0.1,8.6,23.26,False,Active
+ORD-2024-1016,2024-02-18,South,Consumer,47.0,Technology,Printers,Medium,Credit Card,249.47,1,0.0,48.47,30.88,False,Active
+ORD-2024-1017,2024-02-21,,Corporate,40.0,Furniture,Bookcases,Medium,Credit Card,31.59,7,0.1,-20.13,12.2,True,Active
+ORD-2024-1018,2024-02-24,West,Consumer,22.0,Furniture,Chairs,High,Direct Debit,48.78,1,0.0,-6.18,9.74,False,Active
+ORD-2024-1019,2024-02-27,East,Corporate,38.0,Technology,Laptops,Medium,Direct Debit,45.71,9,0.0,-17.78,9.01,False,Active
+ORD-2024-1020,2024-03-01,East,Consumer,50.0,Furniture,Chairs,Medium,PayPal,229.17,1,0.1,19.21,43.09,False,Active
+ORD-2024-1021,2024-03-04,East,Consumer,54.0,Technology,Phones,High,PayPal,354.93,1,0.1,24.35,41.95,False,Active
+ORD-2024-1022,2024-03-07,,Consumer,68.0,Technology,Accessories,Medium,PayPal,269.26,7,0.3,15.45,,True,Active
+ORD-2024-1023,2024-03-10,West,Consumer,22.0,Furniture,Tables,Medium,Direct Debit,25.57,2,0.0,-11.11,20.64,False,Active
+ORD-2024-1024,2024-03-13,West,Consumer,45.0,Furniture,Furnishings,Medium,Wire Transfer,383.42,5,0.1,-39.26,40.04,False,Active
+ORD-2024-1025,2024-03-16,East,Consumer,35.0,Office Supplies,Binders,Medium,Wire Transfer,98.69,8,0.15,-3.1,31.89,False,Active
+ORD-2024-1026,2024-03-19,West,Home Office,30.0,Technology,Laptops,Medium,Direct Debit,111.1,8,0.0,-43.15,29.61,True,Active
+ORD-2024-1027,2024-03-22,East,Consumer,40.0,Furniture,Furnishings,Medium,Direct Debit,39.94,3,0.15,-3.54,9.98,True,Active
+ORD-2024-1028,2024-03-25,Central,Consumer,35.0,Furniture,Furnishings,High,Direct Debit,3920.5,7,0.0,-38.94,326.99,False,Active
+ORD-2024-1029,2024-03-28,Central,Corporate,28.0,Technology,Printers,High,Direct Debit,56.22,3,,-7.3,27.08,False,Active
+ORD-2024-1030,2024-03-31,East,Home Office,19.0,Furniture,Chairs,High,Direct Debit,169.41,6,0.0,-20.07,37.45,False,Active
+ORD-2024-1031,2024-04-03,East,Consumer,40.0,Technology,Printers,High,Direct Debit,350.67,6,0.1,-1.77,42.4,False,Active
+ORD-2024-1032,2024-04-06,East,Consumer,44.0,Technology,Phones,High,PayPal,36.82,3,0.0,-1.64,20.21,False,Active
+ORD-2024-1033,2024-04-09,Central,Corporate,,Office Supplies,Storage,Medium,PayPal,157.96,7,,-23.53,20.98,False,Active
+ORD-2024-1034,2024-04-12,West,Consumer,68.0,Office Supplies,Paper,Medium,PayPal,67.8,3,0.1,0.87,30.25,False,Active
+ORD-2024-1035,2024-04-15,Central,Home Office,32.0,Office Supplies,Art,Medium,PayPal,95.59,8,0.1,-19.04,17.28,False,Active
+ORD-2024-1036,2024-04-18,,Home Office,65.0,Technology,Printers,Low,Direct Debit,135.63,10,0.0,-6.34,34.71,False,Active
+ORD-2024-1037,2024-04-21,East,Consumer,47.0,Technology,Laptops,Medium,Wire Transfer,98.96,4,0.15,24.78,25.91,False,Active
+ORD-2024-1038,2024-04-24,South,Consumer,30.0,Furniture,Bookcases,Medium,Credit Card,208.36,1,0.0,56.33,33.82,True,Active
+ORD-2024-1039,2024-04-27,East,Home Office,54.0,Furniture,Tables,High,Direct Debit,137.56,4,0.3,-18.89,26.26,False,Active
+ORD-2024-1040,2024-04-30,East,Corporate,53.0,Technology,Accessories,Critical,Credit Card,177.96,7,0.0,-51.36,23.85,False,Active
+ORD-2024-1041,2024-05-03,Central,Corporate,70.0,Furniture,Chairs,Medium,Wire Transfer,260.29,11,0.0,-42.08,29.35,True,Active
+ORD-2024-1042,2024-05-06,Central,Corporate,30.0,Technology,Phones,Medium,PayPal,166.86,4,0.0,18.55,22.76,False,Active
+ORD-2024-1043,2024-05-09,South,Corporate,25.0,Office Supplies,Storage,Low,Wire Transfer,178.97,6,0.1,-45.32,23.05,False,Active
+ORD-2024-1044,2024-05-12,West,Home Office,47.0,Technology,Printers,Critical,Direct Debit,169.61,9,0.1,-10.93,34.16,False,Active
+ORD-2024-1045,2024-05-15,East,Home Office,29.0,Furniture,Chairs,Critical,PayPal,105.69,1,0.0,17.99,,False,Active
+ORD-2024-1046,2024-05-18,East,Home Office,51.0,Technology,Accessories,Medium,Direct Debit,94.1,5,0.2,-15.24,13.68,True,Active
+ORD-2024-1047,2024-05-21,Central,Corporate,24.0,Furniture,Chairs,High,PayPal,433.83,11,0.1,91.59,59.09,False,Active
+ORD-2024-1048,2024-05-24,West,Home Office,65.0,Furniture,Tables,Low,Credit Card,188.36,7,0.1,-44.21,37.74,False,Active
+ORD-2024-1049,2024-05-27,,Corporate,33.0,Technology,Laptops,Low,Credit Card,70.43,1,0.1,-11.39,29.19,False,Active
+ORD-2024-1050,2024-05-30,East,Corporate,50.0,Office Supplies,Art,Medium,Credit Card,144.14,4,0.1,25.36,36.43,False,Active
+ORD-2024-1051,2024-06-02,West,Consumer,69.0,Office Supplies,Appliances,Medium,Wire Transfer,92.18,6,0.1,-10.42,15.85,False,Active
+ORD-2024-1052,2024-06-05,South,Home Office,29.0,Office Supplies,Storage,Critical,Direct Debit,508.42,2,0.0,125.74,53.6,True,Active
+ORD-2024-1053,2024-06-08,Central,Home Office,41.0,Office Supplies,Storage,High,Wire Transfer,21.36,10,0.0,-37.63,21.87,False,Active
+ORD-2024-1054,2024-06-11,,Corporate,44.0,Furniture,Bookcases,Medium,Credit Card,65.96,5,0.3,-20.14,24.2,True,Active
+ORD-2024-1055,2024-06-14,East,Home Office,52.0,Office Supplies,Paper,High,Direct Debit,101.84,11,0.3,-9.23,16.23,False,Active
+ORD-2024-1056,2024-06-17,East,Corporate,64.0,Technology,Phones,Critical,Credit Card,140.43,10,0.0,6.29,32.55,False,Active
+ORD-2024-1057,2024-06-20,East,Consumer,52.0,Technology,Printers,Critical,Wire Transfer,362.47,1,0.0,92.71,38.49,False,Active
+ORD-2024-1058,2024-06-23,,Consumer,,Technology,Laptops,Low,Wire Transfer,36.56,6,0.15,-23.51,12.4,False,Active
+ORD-2024-1059,2024-06-26,West,Consumer,22.0,Technology,Printers,Medium,Wire Transfer,315.06,6,0.1,40.32,40.94,True,Active
+ORD-2024-1060,2024-06-29,East,Consumer,35.0,Furniture,Tables,Low,Credit Card,30.31,4,0.0,-13.98,19.28,True,Active
+ORD-2024-1061,2024-07-02,West,Consumer,53.0,Technology,Printers,Medium,Direct Debit,352.49,8,0.0,-65.5,44.8,False,Active
+ORD-2024-1062,2024-07-05,West,Corporate,31.0,Office Supplies,Art,Low,Direct Debit,29.54,4,0.15,-4.17,9.19,False,Active
+ORD-2024-1063,2024-07-08,East,Consumer,59.0,Furniture,Bookcases,High,Credit Card,23.31,8,0.15,-33.58,,False,Active
+ORD-2024-1064,2024-07-11,East,Corporate,57.0,Technology,Accessories,Medium,Direct Debit,234.9,8,0.0,66.69,29.1,False,Active
+ORD-2024-1065,2024-07-14,East,Consumer,33.0,Furniture,Furnishings,Medium,Credit Card,1081.67,5,0.0,107.21,94.12,False,Active
+ORD-2024-1066,2024-07-17,South,Corporate,47.0,Technology,Accessories,Medium,Direct Debit,428.46,4,0.0,-32.68,57.05,False,Active
+ORD-2024-1067,2024-07-20,South,Consumer,47.0,Office Supplies,Storage,Medium,PayPal,174.44,2,0.15,22.55,38.07,False,Active
+ORD-2024-1068,2024-07-23,West,Consumer,29.0,Technology,Accessories,Medium,PayPal,468.86,11,0.0,131.24,59.75,False,Active
+ORD-2024-1069,2024-07-26,West,Consumer,70.0,Office Supplies,Appliances,Medium,Wire Transfer,20.96,3,0.0,-5.94,22.87,False,Active
+ORD-2024-1070,2024-07-29,Central,Corporate,50.0,Office Supplies,Art,Low,PayPal,684.48,3,0.2,216.57,72.86,False,Active
+ORD-2024-1071,2024-08-01,East,Consumer,20.0,Technology,Laptops,Medium,PayPal,141.47,4,0.0,18.7,27.33,False,Active
+ORD-2024-1072,2024-08-04,West,Home Office,65.0,Technology,Laptops,Medium,PayPal,251.01,4,0.15,50.61,26.82,False,Active
+ORD-2024-1073,2024-08-07,West,Consumer,32.0,Office Supplies,Binders,High,Credit Card,329.53,10,0.0,78.47,39.53,False,Active
+ORD-2024-1074,2024-08-10,East,Consumer,38.0,Office Supplies,Storage,Medium,PayPal,248.14,11,0.0,-44.05,32.3,False,Active
+ORD-2024-1075,2024-08-13,South,Home Office,40.0,Office Supplies,Storage,Low,PayPal,157.84,11,0.0,-21.33,22.82,False,Active
+ORD-2024-1076,2024-08-16,West,Corporate,29.0,Office Supplies,Art,Low,Wire Transfer,136.54,5,0.15,-22.36,30.39,False,Active
+ORD-2024-1077,2024-08-19,Central,Consumer,45.0,Technology,Accessories,Critical,PayPal,5200.0,4,0.3,2285.52,430.92,False,Active
+ORD-2024-1078,2024-08-22,East,Corporate,21.0,Furniture,Tables,Medium,PayPal,61.31,11,0.2,-18.47,11.53,False,Active
+ORD-2024-1079,2024-08-25,West,Corporate,35.0,Technology,Printers,Medium,Direct Debit,639.53,10,0.0,-120.8,60.57,False,Active
+ORD-2024-1080,2024-08-28,East,Corporate,62.0,Office Supplies,Appliances,Critical,Wire Transfer,243.41,8,0.15,34.53,38.14,False,Active
+ORD-2024-1081,2024-08-31,West,Consumer,46.0,Furniture,Bookcases,Low,Wire Transfer,60.05,6,0.0,0.33,11.33,False,Active
+ORD-2024-1082,2024-09-03,Central,Consumer,47.0,Technology,Printers,Critical,Wire Transfer,259.89,6,0.0,-34.83,42.82,False,Active
+ORD-2024-1083,2024-09-06,West,Corporate,39.0,Technology,Printers,Medium,Wire Transfer,155.84,8,0.3,-2.27,27.37,False,Active
+ORD-2024-1084,2024-09-09,West,Home Office,65.0,Technology,Accessories,Low,Wire Transfer,241.11,7,0.0,68.27,33.9,False,Active
+ORD-2024-1085,2024-09-12,Central,Corporate,34.0,Technology,Printers,Medium,Wire Transfer,282.81,10,0.0,-76.66,39.47,False,Active
+ORD-2024-1086,2024-09-15,West,Consumer,55.0,Office Supplies,Binders,High,Credit Card,36.44,11,0.0,-34.22,24.41,False,Active
+ORD-2024-1087,2024-09-18,West,Corporate,38.0,Furniture,Tables,Medium,PayPal,146.98,10,0.0,-35.82,23.71,False,Active
+ORD-2024-1088,2024-09-21,East,Corporate,24.0,Office Supplies,Binders,Critical,Wire Transfer,503.92,8,0.0,171.91,58.87,False,Active
+ORD-2024-1089,2024-09-24,West,Consumer,,Furniture,Bookcases,Medium,PayPal,89.59,2,0.1,30.76,23.48,False,Active
+ORD-2024-1090,2024-09-27,South,Consumer,23.0,Technology,Accessories,High,PayPal,182.2,9,0.1,39.9,24.92,False,Active
+ORD-2024-1091,2024-09-30,West,Corporate,21.0,Office Supplies,Art,Medium,Credit Card,102.95,1,0.3,9.85,30.81,False,Active
+ORD-2024-1092,2024-10-03,East,Consumer,19.0,Office Supplies,Art,High,Wire Transfer,129.01,8,0.2,15.38,31.27,False,Active
+ORD-2024-1093,2024-10-06,East,Consumer,56.0,Furniture,Chairs,Medium,Direct Debit,163.17,11,0.0,14.21,31.22,False,Active
+ORD-2024-1094,2024-10-09,Central,Consumer,33.0,Office Supplies,Storage,Low,Credit Card,163.3,4,0.0,-9.23,35.08,False,Active
+ORD-2024-1095,2024-10-12,East,Consumer,52.0,Furniture,Furnishings,Low,Direct Debit,60.56,4,0.0,-980.5,27.19,False,Active
+ORD-2024-1096,2024-10-15,West,Consumer,53.0,Furniture,Furnishings,Low,PayPal,227.69,5,0.1,-49.1,37.38,False,Active
+ORD-2024-1097,2024-10-18,,Home Office,67.0,Furniture,Bookcases,Low,PayPal,36.55,8,0.0,-24.41,24.66,True,Active
+ORD-2024-1098,2024-10-21,South,Home Office,43.0,Technology,Laptops,Low,Credit Card,46.9,5,0.15,-20.56,22.7,False,Active
+ORD-2024-1099,2024-10-24,South,Consumer,42.0,Technology,Printers,High,Credit Card,20.49,8,0.1,-33.59,20.24,False,Active
+ORD-2024-1100,2024-10-27,West,Home Office,30.0,Technology,Phones,Medium,Direct Debit,42.34,10,0.1,-44.4,20.76,False,Active
+ORD-2024-1101,2024-10-30,West,Corporate,36.0,Furniture,Bookcases,High,Wire Transfer,135.36,1,0.1,32.25,30.88,False,Active
+ORD-2024-1102,2024-11-02,East,Consumer,33.0,Technology,Printers,Critical,Direct Debit,187.7,10,0.0,-29.88,23.19,False,Active
+ORD-2024-1103,2024-11-05,East,Consumer,62.0,Furniture,Chairs,Medium,Credit Card,304.63,9,0.3,50.78,46.99,False,Active
+ORD-2024-1104,2024-11-08,East,Consumer,,Office Supplies,Storage,High,Direct Debit,40.31,6,0.2,-28.47,25.66,False,Active
+ORD-2024-1105,2024-11-11,South,Consumer,45.0,Technology,Laptops,High,Credit Card,362.36,3,0.0,2.2,34.57,False,Active
+ORD-2024-1106,2024-11-14,West,Corporate,26.0,Furniture,Bookcases,Medium,Direct Debit,266.66,8,0.3,14.32,42.85,False,Active
+ORD-2024-1107,2024-11-17,,Corporate,64.0,Office Supplies,Paper,Medium,Credit Card,114.52,9,0.1,1.15,16.74,False,Active
+ORD-2024-1108,2024-11-20,East,Consumer,43.0,Technology,Accessories,Medium,Credit Card,506.38,6,0.3,-3.11,52.21,False,Active
+ORD-2024-1109,2024-11-23,South,Home Office,35.0,Technology,Accessories,Medium,Credit Card,866.49,11,0.2,151.42,89.19,False,Active
+ORD-2024-1110,2024-11-26,West,Corporate,47.0,Technology,Printers,Medium,Wire Transfer,61.29,7,0.1,-4.61,13.12,False,Active
+ORD-2024-1111,2024-11-29,East,Consumer,71.0,Technology,Printers,Medium,Direct Debit,105.82,1,0.0,19.23,29.82,False,Active
+ORD-2024-1112,2024-12-02,Central,Home Office,26.0,Office Supplies,Paper,Critical,Direct Debit,489.76,5,0.0,-25.01,60.82,False,Active
+ORD-2024-1113,2024-12-05,West,Home Office,33.0,Office Supplies,Storage,High,Direct Debit,250.16,5,0.1,-53.86,35.16,True,Active
+ORD-2024-1114,2024-12-08,West,Home Office,45.0,Furniture,Furnishings,Low,Credit Card,28.87,10,0.15,-29.26,7.44,False,Active
+ORD-2024-1115,2024-12-11,,Consumer,,Office Supplies,Art,Medium,Direct Debit,293.79,4,0.0,-56.32,34.24,False,Active
+ORD-2024-1116,2024-12-14,Central,Corporate,68.0,Office Supplies,Storage,Low,Direct Debit,336.79,6,0.0,102.24,44.28,False,Active
+ORD-2024-1117,2024-12-17,West,Corporate,70.0,Technology,Laptops,Medium,Credit Card,269.89,7,0.2,17.17,46.21,False,Active
+ORD-2024-1118,2024-12-20,East,Corporate,25.0,Office Supplies,Storage,Medium,PayPal,309.28,9,,91.87,42.38,False,Active
+ORD-2024-1119,2024-12-23,East,Home Office,21.0,Furniture,Furnishings,High,Credit Card,333.87,1,0.1,105.93,36.91,False,Active
+ORD-2024-1010,2024-01-31,South,Consumer,50.0,Technology,Printers,Medium,Credit Card,791.7,8,0.1,-52.7,76.76,False,Active
+ORD-2024-1042,2024-05-06,Central,Corporate,30.0,Technology,Phones,Medium,PayPal,166.86,4,0.0,18.55,22.76,False,Active
