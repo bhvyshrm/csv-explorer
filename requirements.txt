@@ -1,6 +1,8 @@
-# Core data science and web application dependencies
+# Core data science, Excel exploration, and web application dependencies
 streamlit>=1.35.0
 pandas>=2.2.0
 numpy>=1.26.0
 plotly>=5.20.0
 pytest>=8.0.0
+openpyxl>=3.1.0
+xlrd>=2.0.0

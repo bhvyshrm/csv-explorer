@@ -19,16 +19,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Design system color palette
-BG_DARK = "#0B0D12"
-CARD_BG = "#151923"
-PLOT_BG = "#10131B"
-BORDER_COLOR = "#293143"
-TEXT_PRIMARY = "#F5F7FA"
-TEXT_MUTED = "#A3ADBD"
+BG_DARK = "#0A0B10"
+CARD_BG = "#151824"
+PLOT_BG = "#10121A"
+BORDER_COLOR = "#292E3D"
+TEXT_PRIMARY = "#F5F6FA"
+TEXT_MUTED = "#A3A9BA"
 ACCENT_PRIMARY = "#8B7CFF"
-ACCENT_SECONDARY = "#45D6C5"
-ACCENT_WARNING = "#F5B942"
-ACCENT_ERROR = "#F07178"
+ACCENT_SECONDARY = "#4DD8C7"
+ACCENT_WARNING = "#F3BB57"
+ACCENT_ERROR = "#F07885"
 
 
 def apply_theme(fig: go.Figure, title: str = "", height: int = 420) -> go.Figure:
@@ -286,9 +286,9 @@ def create_correlation_heatmap(
 
     # Custom Diverging Color Scale: Teal -> Dark Neutral -> Purple
     custom_colorscale = [
-        [0.0, "#45D6C5"],    # Negative correlation (-1.0)
-        [0.5, "#151923"],    # Zero correlation (0.0)
-        [1.0, "#8B7CFF"],    # Positive correlation (+1.0)
+        [0.0, ACCENT_SECONDARY],  # Negative correlation (-1.0)
+        [0.5, CARD_BG],           # Zero correlation (0.0)
+        [1.0, ACCENT_PRIMARY],    # Positive correlation (+1.0)
     ]
 
     fig = go.Figure(
