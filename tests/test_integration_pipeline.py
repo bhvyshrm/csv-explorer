@@ -92,5 +92,5 @@ def test_full_eda_pipeline_on_sample_superstore():
         numeric_stats_df=num_stats,
     )
     parsed = json.loads(json_str)
-    assert parsed["application"] == "CSV Explorer"
+    assert parsed["application"] == "Analytix"
     assert parsed["dataset_name"] == "sample_superstore_eda.csv"

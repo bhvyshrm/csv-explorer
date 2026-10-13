@@ -1,9 +1,10 @@
-"""Export functionality for CSV Explorer.
+"""Export functionality for Analytix.
 
 Generates:
 - Standardized, downloadable CSV bytes for tables (overview, quality, stats, outliers)
 - Consolidated JSON analytical report with safe serialization of non-finite values (NaN, Inf)
 - Guarantees data privacy: never embeds the entire raw uploaded dataset or local paths
+- Captures dataset format and active worksheet metadata for Excel workbooks
 """
 
 from __future__ import annotations
@@ -70,6 +71,8 @@ def generate_json_report(
     quality_summary_dict: Optional[dict[str, Any]] = None,
     numeric_stats_df: Optional[pd.DataFrame] = None,
     outliers_dict: Optional[dict[str, Any]] = None,
+    dataset_format: str = "CSV",
+    active_worksheet: Optional[str] = None,
 ) -> str:
     """Assemble a consolidated JSON EDA report and serialize safely.
 
@@ -80,17 +83,23 @@ def generate_json_report(
         quality_summary_dict: Quality assessment diagnostics.
         numeric_stats_df: Descriptive statistics table.
         outliers_dict: Outlier summaries for evaluated columns.
+        dataset_format: Source file format ('CSV' or 'Excel').
+        active_worksheet: Selected worksheet name for Excel files.
 
     Returns:
         str: Pretty-printed, valid JSON string.
     """
     report_data: dict[str, Any] = {
-        "application": "CSV Explorer",
-        "version": "1.0.0",
+        "application": "Analytix",
+        "version": "2.0.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "dataset_name": filename,
+        "dataset_format": dataset_format,
         "overview": overview_dict,
     }
+
+    if active_worksheet:
+        report_data["active_worksheet"] = active_worksheet
 
     if column_metadata_df is not None and not column_metadata_df.empty:
         report_data["columns"] = column_metadata_df.to_dict(orient="records")

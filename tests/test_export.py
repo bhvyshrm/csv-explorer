@@ -61,7 +61,7 @@ def test_generate_json_report():
     )
 
     parsed = json.loads(report_str)
-    assert parsed["application"] == "CSV Explorer"
+    assert parsed["application"] == "Analytix"
     assert parsed["dataset_name"] == "test_dataset.csv"
     assert parsed["overview"]["rows"] == 100
     assert len(parsed["columns"]) == 2
