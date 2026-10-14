@@ -253,18 +253,58 @@ Status rating:
 
 ---
 
-## ☁️ Deployment Instructions (Streamlit Community Cloud)
+---
 
-1. Push your repository to GitHub:
+## ⚡ Deployment on Vercel (Next.js + FastAPI Serverless Architecture)
+
+Analytix is fully configured for zero-config production deployment on [Vercel](https://vercel.com):
+
+1. **Architecture**:
+   - **Frontend**: Next.js 14 App Router with Tailwind CSS, TypeScript, and dark SaaS theme.
+   - **Backend**: Python Serverless Functions running FastAPI in `api/index.py` via `@vercel/python`.
+   - **Decoupled Analytical Engine**: 100% of the core Python analytics in `src/` (Pandas, NumPy, OpenPyXL, Plotly) are reused directly.
+2. **Deploy to Vercel**:
+   - Push your repository to GitHub:
+     ```bash
+     git push origin main
+     ```
+   - Import the repository into your Vercel Dashboard.
+   - Vercel automatically detects Next.js for the frontend and deploys `api/index.py` as a serverless function.
+   - Click **Deploy**.
+3. **Serverless Limits**:
+   - **Upload Cap**: To adhere strictly to Vercel's Serverless Function payload limit, file uploads are capped at **4.5 MB**.
+
+---
+
+## 💻 Local Development Workflows
+
+### Option A: Next.js + FastAPI (Vercel Architecture)
+
+1. **Start the FastAPI Backend**:
    ```bash
-   git add .
-   git commit -m "feat: upgrade to Analytix 2.0 with Excel Explorer"
-   git push origin main
+   source .venv/bin/activate
+   python -m uvicorn api.index:app --reload --port 8000
    ```
-2. Navigate to [share.streamlit.io](https://share.streamlit.io/).
-3. Connect your GitHub account and select your repository.
-4. Set `app.py` as the entrypoint file.
-5. Click **Deploy**.
+2. **Start the Next.js Frontend** (in a separate terminal):
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
+
+### Option B: Native Streamlit Application
+
+```bash
+source .venv/bin/activate
+python -m streamlit run app.py
+```
+Open `http://localhost:8501` in your browser.
+
+---
+
+## ☁️ Streamlit Community Cloud & PaaS Deployments
+
+- **Streamlit Community Cloud**: Connect your repository at [share.streamlit.io](https://share.streamlit.io/) and set `app.py` as the entrypoint.
+- **Render / Railway / Heroku**: Uses the included `Procfile` (`web: streamlit run app.py --server.port=${PORT:-8501} --server.address=0.0.0.0`).
 
 ---
 
