@@ -26,3 +26,9 @@ Thumbs.db
 
 # Streamlit logs
 .streamlit/secrets.toml
+
+# Next.js and Node.js
+node_modules/
+.next/
+out/
+next-env.d.ts
