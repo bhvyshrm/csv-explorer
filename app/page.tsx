@@ -16,6 +16,64 @@ import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 
 const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024; // 4.5 MB Vercel Serverless limit
 
+/**
+ * Safely extract meaningful error details from API responses.
+ * Handles FastAPI string/structured details, plain text, and HTML error pages.
+ */
+async function extractErrorMessage(res: Response, fallbackMessage: string): Promise<string> {
+  const statusInfo = res.status ? ` (${res.status} ${res.statusText || ""})`.trim() : "";
+  try {
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+      if (data) {
+        // String detail: standard FastAPI HTTPException
+        if (typeof data.detail === "string" && data.detail.trim().length > 0) {
+          return data.detail;
+        }
+        // Array detail: FastAPI RequestValidationError [{loc, msg, type}]
+        if (Array.isArray(data.detail) && data.detail.length > 0) {
+          const msgs = data.detail
+            .map((item: any) => {
+              if (typeof item === "string") return item;
+              if (item && typeof item === "object") {
+                const loc = Array.isArray(item.loc) ? item.loc.slice(1).join(".") : "";
+                return loc ? `${loc}: ${item.msg || "invalid value"}` : (item.msg || JSON.stringify(item));
+              }
+              return String(item);
+            })
+            .filter(Boolean);
+          if (msgs.length > 0) return msgs.join("; ");
+        }
+        // Object detail
+        if (typeof data.detail === "object" && data.detail !== null) {
+          return JSON.stringify(data.detail);
+        }
+        if (typeof data.message === "string" && data.message.trim().length > 0) {
+          return data.message;
+        }
+        if (typeof data.error === "string" && data.error.trim().length > 0) {
+          return data.error;
+        }
+      }
+    } else {
+      const text = await res.text();
+      if (text && text.trim().length > 0) {
+        // If HTML page (e.g. Next.js or Vercel 404/500), return a clean fallback with status code
+        if (text.includes("<html") || text.includes("<!DOCTYPE") || text.includes("<body")) {
+          return `${fallbackMessage}${statusInfo}`;
+        }
+        if (text.length <= 300) {
+          return text.trim();
+        }
+      }
+    }
+  } catch {
+    // Parsing error fallback
+  }
+  return `${fallbackMessage}${statusInfo}`;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveNavTab>("overview");
   const [data, setData] = useState<AnalysisPayload | null>(null);
@@ -31,8 +89,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/sample/csv");
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Failed to load sample dataset.");
+        const errorMsg = await extractErrorMessage(res, "Failed to load sample dataset.");
+        throw new Error(errorMsg);
       }
       const payload: AnalysisPayload = await res.json();
       setData(payload);
@@ -55,8 +113,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/sample/excel");
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Failed to load sample Excel workbook.");
+        const errorMsg = await extractErrorMessage(res, "Failed to load sample Excel workbook.");
+        throw new Error(errorMsg);
       }
       const payload: AnalysisPayload = await res.json();
       setData(payload);
@@ -104,8 +162,8 @@ export default function Home() {
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || "Failed to parse CSV file.");
+          const errorMsg = await extractErrorMessage(res, "Failed to parse CSV file.");
+          throw new Error(errorMsg);
         }
 
         const payload: AnalysisPayload = await res.json();
@@ -123,8 +181,8 @@ export default function Home() {
         });
 
         if (!inspectRes.ok) {
-          const err = await inspectRes.json().catch(() => ({}));
-          throw new Error(err.detail || "Failed to inspect Excel workbook.");
+          const errorMsg = await extractErrorMessage(inspectRes, "Failed to inspect Excel workbook.");
+          throw new Error(errorMsg);
         }
 
         const inspectData = await inspectRes.json();
@@ -140,8 +198,8 @@ export default function Home() {
         });
 
         if (!sheetRes.ok) {
-          const err = await sheetRes.json().catch(() => ({}));
-          throw new Error(err.detail || `Failed to parse worksheet "${firstSheet}".`);
+          const errorMsg = await extractErrorMessage(sheetRes, `Failed to parse worksheet "${firstSheet}".`);
+          throw new Error(errorMsg);
         }
 
         const payload: AnalysisPayload = await sheetRes.json();
@@ -174,8 +232,8 @@ export default function Home() {
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `Failed to load sheet "${sheetName}".`);
+          const errorMsg = await extractErrorMessage(res, `Failed to load sheet "${sheetName}".`);
+          throw new Error(errorMsg);
         }
 
         const payload: AnalysisPayload = await res.json();
@@ -184,11 +242,10 @@ export default function Home() {
         // Built-in sample Excel
         const res = await fetch(`/api/sample/excel`);
         if (!res.ok) {
-          throw new Error("Failed to reload sample sheet.");
+          const errorMsg = await extractErrorMessage(res, "Failed to reload sample sheet.");
+          throw new Error(errorMsg);
         }
-        // If sample, we can load the specific sheet by re-inspecting or requesting
         const payload: AnalysisPayload = await res.json();
-        // Update active sheet in payload if different
         setData(payload);
       }
     } catch (err: any) {
@@ -217,8 +274,8 @@ export default function Home() {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Outlier recalculation failed.");
+        const errorMsg = await extractErrorMessage(res, "Outlier recalculation failed.");
+        throw new Error(errorMsg);
       }
 
       const outlierResult: OutlierResult = await res.json();

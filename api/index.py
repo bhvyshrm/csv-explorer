@@ -14,7 +14,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, FastAPI, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -295,13 +295,16 @@ def build_full_analysis_payload(
     return sanitize_for_json(payload)
 
 
-@app.get("/api/health")
+router = APIRouter()
+
+
+@router.get("/health")
 def health_check() -> dict[str, str]:
     """Health check endpoint confirming API status."""
     return {"status": "ok", "app": "Analytix", "version": "2.0.0"}
 
 
-@app.get("/api/sample/csv")
+@router.get("/sample/csv")
 def load_sample_csv() -> dict[str, Any]:
     """Analyze the built-in Superstore EDA sample CSV dataset."""
     if not SAMPLE_CSV_PATH.exists():
@@ -313,7 +316,7 @@ def load_sample_csv() -> dict[str, Any]:
     return build_full_analysis_payload(result.df, filename="sample_superstore_eda.csv", format_type="CSV")
 
 
-@app.get("/api/sample/excel")
+@router.get("/sample/excel")
 def load_sample_excel() -> dict[str, Any]:
     """Analyze the built-in multi-sheet Excel sample workbook."""
     if not SAMPLE_EXCEL_PATH.exists():
@@ -334,7 +337,7 @@ def load_sample_excel() -> dict[str, Any]:
     )
 
 
-@app.post("/api/upload/csv")
+@router.post("/upload/csv")
 async def upload_csv(file: UploadFile = File(...)) -> dict[str, Any]:
     """Upload and analyze a CSV dataset within Vercel serverless limits."""
     if not file.filename:
@@ -346,7 +349,7 @@ async def upload_csv(file: UploadFile = File(...)) -> dict[str, Any]:
     content = await file.read()
     if len(content) > MAX_SERVERLESS_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=413,
             detail=f"File exceeds Vercel's 4.5 MB serverless upload limit ({len(content)/(1024*1024):.1f} MB uploaded). Please upload a file under 4.5 MB.",
         )
 
@@ -363,7 +366,7 @@ async def upload_csv(file: UploadFile = File(...)) -> dict[str, Any]:
     return build_full_analysis_payload(res.df, filename=file.filename, format_type="CSV")
 
 
-@app.post("/api/upload/excel/inspect")
+@router.post("/upload/excel/inspect")
 async def inspect_excel(file: UploadFile = File(...)) -> dict[str, Any]:
     """Inspect Excel workbook metadata and discover all worksheets."""
     if not file.filename:
@@ -376,7 +379,7 @@ async def inspect_excel(file: UploadFile = File(...)) -> dict[str, Any]:
     content = await file.read()
     if len(content) > MAX_SERVERLESS_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=413,
             detail=f"File exceeds Vercel's 4.5 MB serverless upload limit ({len(content)/(1024*1024):.1f} MB uploaded).",
         )
 
@@ -408,7 +411,7 @@ async def inspect_excel(file: UploadFile = File(...)) -> dict[str, Any]:
     )
 
 
-@app.post("/api/upload/excel/sheet")
+@router.post("/upload/excel/sheet")
 async def load_excel_worksheet(
     file: UploadFile = File(...),
     sheet_name: str = Form(...),
@@ -420,7 +423,7 @@ async def load_excel_worksheet(
     content = await file.read()
     if len(content) > MAX_SERVERLESS_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=413,
             detail=f"File exceeds Vercel's 4.5 MB serverless upload limit ({len(content)/(1024*1024):.1f} MB uploaded).",
         )
 
@@ -455,7 +458,7 @@ class OutlierRecalcRequest(BaseModel):
     multiplier: float = 1.5
 
 
-@app.post("/api/analysis/outliers")
+@router.post("/analysis/outliers")
 def recalculate_outliers(req: OutlierRecalcRequest) -> dict[str, Any]:
     """Recalculate IQR outliers with a custom multiplier slider value."""
     if not req.data:
@@ -495,7 +498,7 @@ class HistogramRequest(BaseModel):
     nbins: int = 30
 
 
-@app.post("/api/analysis/histogram")
+@router.post("/analysis/histogram")
 def recalculate_histogram(req: HistogramRequest) -> dict[str, Any]:
     """Generate dynamic histogram with configured bin count."""
     df = pd.DataFrame(req.data)
@@ -511,7 +514,7 @@ class CorrelationRequest(BaseModel):
     method: str = "pearson"
 
 
-@app.post("/api/analysis/correlation")
+@router.post("/analysis/correlation")
 def recalculate_correlation(req: CorrelationRequest) -> dict[str, Any]:
     """Generate dynamic correlation heatmap for selected columns."""
     df = pd.DataFrame(req.data)
@@ -524,7 +527,7 @@ class ExportCSVRequest(BaseModel):
     filename: str = "analytix_export.csv"
 
 
-@app.post("/api/export/csv")
+@router.post("/export/csv")
 def export_csv(req: ExportCSVRequest) -> Response:
     """Export tabular rows to standardized CSV bytes."""
     df = pd.DataFrame(req.rows)
@@ -546,7 +549,7 @@ class ExportJSONRequest(BaseModel):
     numeric_stats: Optional[list[dict[str, Any]]] = None
 
 
-@app.post("/api/export/json")
+@router.post("/export/json")
 def export_json(req: ExportJSONRequest) -> Response:
     """Generate consolidated, JSON-safe analytical audit report."""
     columns_df = pd.DataFrame(req.columns) if req.columns else None
@@ -572,3 +575,16 @@ def export_json(req: ExportJSONRequest) -> Response:
         media_type="application/json",
         headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
     )
+
+
+# Mount routes under /api (for frontend and standard API calls) and under root / (for direct routing)
+app.include_router(router, prefix="/api")
+app.include_router(router)
+
+
+@app.get("/")
+@app.get("/api")
+@app.get("/api/")
+def root_status() -> dict[str, str]:
+    """Root status endpoint confirming API status and deployment health."""
+    return {"status": "ok", "app": "Analytix", "version": "2.0.0"}

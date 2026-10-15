@@ -153,3 +153,58 @@ def test_export_csv_and_json_endpoints():
     assert json_resp.status_code == 200
     assert b"Analytix" in json_resp.content
     assert b"test.csv" in json_resp.content
+
+
+def test_root_and_base_api_endpoints():
+    """Verify root / and base /api and /api/ return 200 OK without 404 detail not found."""
+    for path in ["/", "/api", "/api/"]:
+        resp = client.get(path)
+        assert resp.status_code == 200, f"Failed for path {path}"
+        data = resp.json()
+        assert data["status"] == "ok"
+        assert data["app"] == "Analytix"
+        assert data["version"] == "2.0.0"
+
+
+def test_routes_without_api_prefix():
+    """Verify routes resolve successfully without /api prefix (supporting direct Vercel function mapping)."""
+    # 1. Health check without prefix
+    health_resp = client.get("/health")
+    assert health_resp.status_code == 200
+    assert health_resp.json()["status"] == "ok"
+
+    # 2. Sample CSV without prefix
+    csv_resp = client.get("/sample/csv")
+    assert csv_resp.status_code == 200
+    assert csv_resp.json()["dataset_name"] == "sample_superstore_eda.csv"
+
+    # 3. Sample Excel without prefix
+    excel_resp = client.get("/sample/excel")
+    assert excel_resp.status_code == 200
+    assert excel_resp.json()["dataset_name"] == "sample_analytix_multisheet.xlsx"
+
+
+def test_invalid_requests_and_structured_error_responses():
+    """Verify invalid requests return valid JSON error responses with meaningful detail."""
+    # Non-existent endpoint produces standard 404 with detail
+    res_404 = client.get("/api/nonexistent_route_test")
+    assert res_404.status_code == 404
+    assert "detail" in res_404.json()
+
+    # Invalid file format produces 400 with string detail
+    files = {"file": ("data.txt", io.BytesIO(b"hello world"), "text/plain")}
+    res_bad_format = client.post("/api/upload/csv", files=files)
+    assert res_bad_format.status_code == 400
+    assert "detail" in res_bad_format.json()
+    assert ".csv" in res_bad_format.json()["detail"].lower()
+
+    # Outliers calculation with missing column produces 400 with detail
+    bad_outlier_payload = {
+        "data": [{"a": 1}, {"a": 2}],
+        "column": "non_existent_column",
+        "multiplier": 1.5,
+    }
+    res_bad_outlier = client.post("/api/analysis/outliers", json=bad_outlier_payload)
+    assert res_bad_outlier.status_code == 400
+    assert "detail" in res_bad_outlier.json()
+    assert "non_existent_column" in res_bad_outlier.json()["detail"]
