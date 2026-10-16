@@ -75,6 +75,46 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
+class VercelPathMiddleware:
+    """ASGI Middleware to restore the client request path on Vercel deployments.
+
+    When Vercel rewrites incoming requests matching /api/* to /api/index.py,
+    the ASGI scope['path'] becomes '/api/index.py' (or '/api/index').
+    Vercel preserves the original client path in standard proxy headers:
+    'x-matched-path', 'x-vercel-matched-path', or 'x-forwarded-uri'.
+    This middleware restores the original path in scope['path'] so that FastAPI's router
+    matches the intended endpoint.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope["type"] == "http":
+            current_path = scope.get("path", "")
+            if current_path in (
+                "/api/index.py",
+                "/api/index.py/",
+                "/api/index",
+                "/api/index/",
+                "/api",
+                "/api/",
+            ):
+                headers = dict(scope.get("headers", []))
+                raw_matched = (
+                    headers.get(b"x-matched-path")
+                    or headers.get(b"x-vercel-matched-path")
+                    or headers.get(b"x-forwarded-uri")
+                )
+                if raw_matched:
+                    matched_str = raw_matched.decode("latin1", errors="replace")
+                    clean_path, _, _ = matched_str.partition("?")
+                    if clean_path and clean_path not in ("/api/index.py", "/api/index.py/"):
+                        scope["path"] = clean_path
+                        scope["raw_path"] = clean_path.encode("latin1")
+        await self.app(scope, receive, send)
+
+
 # Enable CORS for local and cross-origin requests
 app.add_middleware(
     CORSMiddleware,
@@ -83,6 +123,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(VercelPathMiddleware)
 
 
 def sanitize_for_json(val: Any) -> Any:
@@ -585,6 +626,8 @@ app.include_router(router)
 @app.get("/")
 @app.get("/api")
 @app.get("/api/")
+@app.get("/api/index.py")
+@app.get("/api/index")
 def root_status() -> dict[str, str]:
     """Root status endpoint confirming API status and deployment health."""
     return {"status": "ok", "app": "Analytix", "version": "2.0.0"}

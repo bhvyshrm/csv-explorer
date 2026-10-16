@@ -208,3 +208,46 @@ def test_invalid_requests_and_structured_error_responses():
     assert res_bad_outlier.status_code == 400
     assert "detail" in res_bad_outlier.json()
     assert "non_existent_column" in res_bad_outlier.json()["detail"]
+
+
+def test_vercel_routing_middleware_restores_path():
+    """Verify ASGI middleware restores original path when Vercel rewrites to /api/index.py."""
+    # 1. Health check via Vercel rewrite with x-matched-path
+    res_health = client.get("/api/index.py", headers={"x-matched-path": "/api/health"})
+    assert res_health.status_code == 200
+    assert res_health.json()["status"] == "ok"
+
+    # 2. Sample CSV via Vercel rewrite with x-matched-path
+    res_csv = client.get("/api/index.py", headers={"x-matched-path": "/api/sample/csv"})
+    assert res_csv.status_code == 200
+    assert res_csv.json()["dataset_name"] == "sample_superstore_eda.csv"
+
+    # 3. Sample Excel via Vercel rewrite with x-matched-path
+    res_excel = client.get("/api/index.py", headers={"x-matched-path": "/api/sample/excel"})
+    assert res_excel.status_code == 200
+    assert res_excel.json()["dataset_name"] == "sample_analytix_multisheet.xlsx"
+
+    # 4. Supports x-vercel-matched-path header fallback
+    res_alt_hdr = client.get("/api/index.py", headers={"x-vercel-matched-path": "/api/health"})
+    assert res_alt_hdr.status_code == 200
+    assert res_alt_hdr.json()["status"] == "ok"
+
+    # 5. Supports x-forwarded-uri header fallback
+    res_fwd_uri = client.get("/api/index.py", headers={"x-forwarded-uri": "/api/health"})
+    assert res_fwd_uri.status_code == 200
+    assert res_fwd_uri.json()["status"] == "ok"
+
+    # 6. Strips query parameters from matched path gracefully
+    res_with_query = client.get("/api/index.py", headers={"x-matched-path": "/api/sample/csv?v=2"})
+    assert res_with_query.status_code == 200
+    assert res_with_query.json()["dataset_name"] == "sample_superstore_eda.csv"
+
+    # 7. Direct hit on /api/index.py without proxy headers
+    res_direct = client.get("/api/index.py")
+    assert res_direct.status_code == 200
+    assert res_direct.json()["status"] == "ok"
+
+    # 8. Direct hit on /api/index
+    res_index = client.get("/api/index")
+    assert res_index.status_code == 200
+    assert res_index.json()["status"] == "ok"
