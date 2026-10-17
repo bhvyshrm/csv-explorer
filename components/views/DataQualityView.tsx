@@ -35,17 +35,17 @@ export default function DataQualityView({ data }: DataQualityViewProps) {
       case "CRITICAL":
         return {
           icon: ShieldAlert,
-          classes: "bg-red-950/40 text-red-300 border-red-800/40",
+          classes: "bg-rose-50 text-rose-700 border-rose-200",
         };
       case "WARNING":
         return {
           icon: AlertTriangle,
-          classes: "bg-amber-950/40 text-amber-300 border-amber-800/40",
+          classes: "bg-amber-50 text-amber-700 border-amber-200",
         };
       default:
         return {
           icon: Info,
-          classes: "bg-blue-950/40 text-blue-300 border-blue-800/40",
+          classes: "bg-blue-50 text-blue-700 border-blue-200",
         };
     }
   };
