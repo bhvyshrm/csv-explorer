@@ -83,14 +83,14 @@ export default function OutlierAnalysisView({
   return (
     <div className="space-y-6">
       {/* Header & Controls */}
-      <div className="bg-card border border-border rounded-xl p-6">
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-primary-text flex items-center gap-2">
-              <Target className="w-5 h-5 text-accent" />
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Target className="w-5 h-5 text-indigo-600" />
               Mathematical Outlier Detection (Tukey IQR)
             </h1>
-            <p className="text-sm text-muted-text mt-0.5">
+            <p className="text-xs text-slate-500 mt-1">
               Identifies values beyond statistical thresholds: [Q1 - k &times; IQR, Q3 + k &times; IQR].
             </p>
           </div>
