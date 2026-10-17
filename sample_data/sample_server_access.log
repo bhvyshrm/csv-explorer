@@ -1,0 +1,10 @@
+2026-10-17 08:00:10 [INFO] System boot and container healthcheck verified (v1.4.2)
+2026-10-17 08:00:15 [INFO] Connected to primary relational replica in us-east-1
+2026-10-17 08:02:40 [INFO] Incoming API request: POST /api/upload/csv (content-length: 142850)
+2026-10-17 08:02:41 [INFO] Dataset validated: 1,420 rows, 18 columns, memory 284 KB
+2026-10-17 08:05:12 [WARN] High memory footprint detected for temporary file cache: 82% threshold
+2026-10-17 08:07:33 [INFO] Incoming API request: GET /api/sample/excel
+2026-10-17 08:07:34 [INFO] Excel workbook parsed: 3 sheets discovered, sheet active: Orders_Data
+2026-10-17 08:11:02 [ERROR] Rate limit threshold exceeded for client host: 198.51.100.44
+2026-10-17 08:12:19 [WARN] Outlier recalculation completed with high variance: multiplier=1.2, outliers=14
+2026-10-17 08:15:00 [INFO] Scheduled healthcheck report dispatched successfully

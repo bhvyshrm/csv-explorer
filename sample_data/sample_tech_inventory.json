@@ -1,0 +1,162 @@
+[
+  {
+    "product_id": "PRD-101",
+    "name": "Zenith Pro 16 Laptop",
+    "category": "Computers",
+    "price_usd": 1899.99,
+    "stock_units": 42,
+    "rating": 4.8,
+    "specs": {
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "cpu_cores": 10,
+      "display_inches": 16.0
+    },
+    "warranty_months": 24,
+    "release_year": 2024
+  },
+  {
+    "product_id": "PRD-102",
+    "name": "AeroBook Air 13",
+    "category": "Computers",
+    "price_usd": 1099.00,
+    "stock_units": 78,
+    "rating": 4.6,
+    "specs": {
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "cpu_cores": 8,
+      "display_inches": 13.3
+    },
+    "warranty_months": 12,
+    "release_year": 2024
+  },
+  {
+    "product_id": "PRD-103",
+    "name": "Titan Gaming Desktop",
+    "category": "Computers",
+    "price_usd": 2499.50,
+    "stock_units": 15,
+    "rating": 4.9,
+    "specs": {
+      "ram_gb": 64,
+      "storage_gb": 2048,
+      "cpu_cores": 16,
+      "display_inches": null
+    },
+    "warranty_months": 36,
+    "release_year": 2025
+  },
+  {
+    "product_id": "PRD-104",
+    "name": "EchoBuds Noise Cancel Pro",
+    "category": "Audio",
+    "price_usd": 249.99,
+    "stock_units": 120,
+    "rating": 4.5,
+    "specs": {
+      "ram_gb": null,
+      "storage_gb": null,
+      "cpu_cores": null,
+      "display_inches": null
+    },
+    "warranty_months": 12,
+    "release_year": 2023
+  },
+  {
+    "product_id": "PRD-105",
+    "name": "Quantum Soundbar 5.1",
+    "category": "Audio",
+    "price_usd": 499.00,
+    "stock_units": 34,
+    "rating": 4.3,
+    "specs": {
+      "ram_gb": null,
+      "storage_gb": null,
+      "cpu_cores": null,
+      "display_inches": null
+    },
+    "warranty_months": 24,
+    "release_year": 2024
+  },
+  {
+    "product_id": "PRD-106",
+    "name": "Apex View 27 4K Monitor",
+    "category": "Peripherals",
+    "price_usd": 549.99,
+    "stock_units": 55,
+    "rating": 4.7,
+    "specs": {
+      "ram_gb": null,
+      "storage_gb": null,
+      "cpu_cores": null,
+      "display_inches": 27.0
+    },
+    "warranty_months": 36,
+    "release_year": 2024
+  },
+  {
+    "product_id": "PRD-107",
+    "name": "Nova Mech Keyboard RGB",
+    "category": "Peripherals",
+    "price_usd": 149.50,
+    "stock_units": 89,
+    "rating": 4.6,
+    "specs": {
+      "ram_gb": null,
+      "storage_gb": null,
+      "cpu_cores": null,
+      "display_inches": null
+    },
+    "warranty_months": 24,
+    "release_year": 2023
+  },
+  {
+    "product_id": "PRD-108",
+    "name": "Precision Precision Mouse",
+    "category": "Peripherals",
+    "price_usd": 89.99,
+    "stock_units": 110,
+    "rating": 4.4,
+    "specs": {
+      "ram_gb": null,
+      "storage_gb": null,
+      "cpu_cores": null,
+      "display_inches": null
+    },
+    "warranty_months": 24,
+    "release_year": 2023
+  },
+  {
+    "product_id": "PRD-109",
+    "name": "CloudPad Ultra Tablet 11",
+    "category": "Tablets",
+    "price_usd": 799.00,
+    "stock_units": 62,
+    "rating": 4.7,
+    "specs": {
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "cpu_cores": 8,
+      "display_inches": 11.0
+    },
+    "warranty_months": 12,
+    "release_year": 2024
+  },
+  {
+    "product_id": "PRD-110",
+    "name": "Aura Smartwatch LTE",
+    "category": "Wearables",
+    "price_usd": 379.99,
+    "stock_units": 94,
+    "rating": 4.2,
+    "specs": {
+      "ram_gb": 2,
+      "storage_gb": 32,
+      "cpu_cores": 4,
+      "display_inches": 1.4
+    },
+    "warranty_months": 12,
+    "release_year": 2024
+  }
+]
