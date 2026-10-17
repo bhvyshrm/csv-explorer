@@ -1,4 +1,4 @@
-"""Analytix 2.0 - Multi-Format Data Exploration Platform.
+"""Analytix - Multi-Format Data Exploration Platform.
 
 A modern, SaaS-grade exploratory data analysis dashboard supporting CSV files
 and multi-sheet Excel workbooks (.xlsx, .xls) built with Streamlit, pandas,
@@ -75,7 +75,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Analytix 2.0 Modern Dark SaaS CSS Theme
+# Analytix Modern Theme Styles
 CUSTOM_CSS = """
 <style>
 /* Typography & Base Reset */
