@@ -1,6 +1,6 @@
-"""Analytix 2.0 - Vercel-Compatible FastAPI Serverless Entrypoint.
+"""Analytix - Vercel-Compatible FastAPI Serverless Entrypoint.
 
-Bridges the native data science engine in src/ (pandas, numpy, openpyxl, plotly)
+Bridges the native data science engine in src/ (pandas, numpy, openpyxl, plotly, pyarrow)
 with Vercel's Python serverless function runtime (@vercel/python).
 """
 
@@ -48,7 +48,17 @@ from src.export import (
     export_dataframe_to_csv,
     generate_json_report,
 )
+from src.format_registry import (
+    SUPPORTED_FORMATS,
+    UnsupportedFormatError,
+    detect_and_load_file,
+)
 from src.outliers import detect_outliers_iqr
+from src.report_generator import (
+    generate_analysis_workbook_xlsx,
+    generate_complete_zip_report,
+    generate_executive_summary_html,
+)
 from src.statistics import (
     get_categorical_statistics,
     get_numeric_statistics,
@@ -66,6 +76,10 @@ MAX_SERVERLESS_BYTES = int(4.5 * 1024 * 1024)
 
 SAMPLE_CSV_PATH = Path("sample_data/sample_superstore_eda.csv")
 SAMPLE_EXCEL_PATH = Path("sample_data/sample_analytix_multisheet.xlsx")
+SAMPLE_JSON_PATH = Path("sample_data/sample_tech_inventory.json")
+SAMPLE_TSV_PATH = Path("sample_data/sample_student_scores.tsv")
+SAMPLE_LOG_PATH = Path("sample_data/sample_server_access.log")
+SAMPLE_PARQUET_PATH = Path("sample_data/sample_web_analytics.parquet")
 
 app = FastAPI(
     title="Analytix API",
@@ -345,6 +359,90 @@ def health_check() -> dict[str, str]:
     return {"status": "ok", "app": "Analytix", "version": "2.0.0"}
 
 
+@router.get("/formats")
+def list_supported_formats() -> list[dict[str, Any]]:
+    """Return all supported formats, extensions, categories, and real availability status."""
+    return [
+        {
+            "id": f.id,
+            "name": f.name,
+            "description": f.description,
+            "extensions": f.extensions,
+            "is_available": f.is_available,
+            "status_label": f.status_label,
+            "category": f.category,
+        }
+        for f in SUPPORTED_FORMATS
+    ]
+
+
+@router.get("/samples")
+def list_sample_datasets() -> list[dict[str, Any]]:
+    """Return catalog of available sample datasets for 1-click loading."""
+    return [
+        {
+            "id": "csv-superstore",
+            "name": "Superstore Sales EDA",
+            "format": "CSV",
+            "description": "Retail transaction records with sales, profits, discounts, and regional distribution.",
+            "endpoint": "/api/sample/csv",
+            "rows": 122,
+            "cols": 16,
+            "badge": "Popular",
+        },
+        {
+            "id": "excel-multisheet",
+            "name": "Global Retail Multisheet",
+            "format": "Excel (.xlsx)",
+            "description": "Three interconnected sheets: Orders, Customer Demographics, and Regional Returns.",
+            "endpoint": "/api/sample/excel",
+            "rows": 150,
+            "cols": 12,
+            "badge": "Multi-Sheet",
+        },
+        {
+            "id": "json-tech",
+            "name": "Tech Hardware Catalog",
+            "format": "JSON",
+            "description": "Hardware products with nested hardware specifications, price points, and ratings.",
+            "endpoint": "/api/sample/json",
+            "rows": 10,
+            "cols": 11,
+            "badge": "Nested JSON",
+        },
+        {
+            "id": "tsv-students",
+            "name": "Student Academic Scores",
+            "format": "TSV",
+            "description": "University study hours, attendance percentages, and examination outcomes.",
+            "endpoint": "/api/sample/tsv",
+            "rows": 10,
+            "cols": 8,
+            "badge": "Education",
+        },
+        {
+            "id": "parquet-analytics",
+            "name": "Web Session Analytics",
+            "format": "Parquet",
+            "description": "Columnar web session analytics with device types, time on site, and conversions.",
+            "endpoint": "/api/sample/parquet",
+            "rows": 20,
+            "cols": 7,
+            "badge": "Columnar",
+        },
+        {
+            "id": "log-server",
+            "name": "Application Access Logs",
+            "format": "Log",
+            "description": "Structured system events with timestamps, severity levels (INFO/WARN/ERROR), and request paths.",
+            "endpoint": "/api/sample/log",
+            "rows": 10,
+            "cols": 3,
+            "badge": "Logs",
+        },
+    ]
+
+
 @router.get("/sample/csv")
 def load_sample_csv() -> dict[str, Any]:
     """Analyze the built-in Superstore EDA sample CSV dataset."""
@@ -375,6 +473,89 @@ def load_sample_excel() -> dict[str, Any]:
         format_type=format_label,
         active_worksheet=active_sheet,
         workbook_meta=workbook_meta,
+    )
+
+
+@router.get("/sample/json")
+def load_sample_json() -> dict[str, Any]:
+    """Analyze the built-in Tech Hardware Catalog JSON dataset."""
+    if not SAMPLE_JSON_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample JSON file not found on server.",
+        )
+    result = detect_and_load_file(SAMPLE_JSON_PATH, filename="sample_tech_inventory.json")
+    return build_full_analysis_payload(result.df, filename="sample_tech_inventory.json", format_type="JSON")
+
+
+@router.get("/sample/tsv")
+def load_sample_tsv() -> dict[str, Any]:
+    """Analyze the built-in Student Academic Performance TSV dataset."""
+    if not SAMPLE_TSV_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample TSV file not found on server.",
+        )
+    result = detect_and_load_file(SAMPLE_TSV_PATH, filename="sample_student_scores.tsv")
+    return build_full_analysis_payload(result.df, filename="sample_student_scores.tsv", format_type="TSV")
+
+
+@router.get("/sample/log")
+def load_sample_log() -> dict[str, Any]:
+    """Analyze the built-in Application Access Log dataset."""
+    if not SAMPLE_LOG_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample Log file not found on server.",
+        )
+    result = detect_and_load_file(SAMPLE_LOG_PATH, filename="sample_server_access.log")
+    return build_full_analysis_payload(result.df, filename="sample_server_access.log", format_type="Log")
+
+
+@router.get("/sample/parquet")
+def load_sample_parquet() -> dict[str, Any]:
+    """Analyze the built-in Web Analytics Parquet dataset."""
+    if not SAMPLE_PARQUET_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sample Parquet file not found on server.",
+        )
+    result = detect_and_load_file(SAMPLE_PARQUET_PATH, filename="sample_web_analytics.parquet")
+    return build_full_analysis_payload(result.df, filename="sample_web_analytics.parquet", format_type="Parquet")
+
+
+@router.post("/upload")
+async def upload_dataset(
+    file: UploadFile = File(...),
+    sheet_name: Optional[str] = Form(None),
+) -> dict[str, Any]:
+    """Upload and analyze any supported format (.csv, .xlsx, .xls, .tsv, .json, .ndjson, .parquet, .txt, .log, .xml)."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Missing file name.")
+
+    content = await file.read()
+    if len(content) > MAX_SERVERLESS_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds Vercel's 4.5 MB serverless limit ({len(content)/(1024*1024):.1f} MB uploaded). Please upload a file under 4.5 MB.",
+        )
+
+    buf = _create_named_buffer(content, file.filename)
+    try:
+        load_res = detect_and_load_file(buf, filename=file.filename, sheet_name=sheet_name)
+    except UnsupportedFormatError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except (CSVEmptyError, ExcelEmptyWorkbookError, ExcelEmptySheetError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Failed to ingest file: {str(exc)}")
+
+    return build_full_analysis_payload(
+        load_res.df,
+        filename=file.filename,
+        format_type=load_res.format_type,
+        active_worksheet=load_res.active_worksheet,
+        workbook_meta=load_res.workbook_meta,
     )
 
 
@@ -614,6 +795,107 @@ def export_json(req: ExportJSONRequest) -> Response:
     return Response(
         content=report_str.encode("utf-8"),
         media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
+    )
+
+
+class ExportXLSXRequest(BaseModel):
+    filename: str
+    dataset_format: str = "CSV"
+    active_worksheet: Optional[str] = None
+    overview: dict[str, Any]
+    columns: list[dict[str, Any]]
+    quality: dict[str, Any]
+    numeric_stats: Optional[list[dict[str, Any]]] = None
+    outliers: Optional[dict[str, Any]] = None
+
+
+@router.post("/export/xlsx")
+def export_analysis_workbook(req: ExportXLSXRequest) -> Response:
+    """Generate multi-tab Excel workbook (.xlsx) summarizing full dataset analysis."""
+    xlsx_bytes = generate_analysis_workbook_xlsx(
+        filename=req.filename,
+        overview=req.overview,
+        columns=req.columns,
+        quality=req.quality,
+        numeric_stats=req.numeric_stats,
+        outliers_map=req.outliers,
+        dataset_format=req.dataset_format,
+        active_worksheet=req.active_worksheet,
+    )
+    clean_name = (
+        req.filename.replace(".csv", "")
+        .replace(".xlsx", "")
+        .replace(".xls", "")
+        .replace(".json", "")
+        .replace(".tsv", "")
+        .replace(".parquet", "")
+    )
+    download_filename = f"{clean_name}_analysis_workbook.xlsx"
+    return Response(
+        content=xlsx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
+    )
+
+
+class ExportZIPRequest(BaseModel):
+    filename: str
+    dataset_format: str = "CSV"
+    active_worksheet: Optional[str] = None
+    overview: dict[str, Any]
+    columns: list[dict[str, Any]]
+    quality: dict[str, Any]
+    numeric_stats: Optional[list[dict[str, Any]]] = None
+    outliers: Optional[dict[str, Any]] = None
+    preview: Optional[list[dict[str, Any]]] = None
+
+
+@router.post("/export/zip")
+def export_complete_zip(req: ExportZIPRequest) -> Response:
+    """Generate consolidated ZIP archive containing all reports, Excel workbook, CSVs, and HTML summary."""
+    zip_bytes = generate_complete_zip_report(
+        filename=req.filename,
+        overview=req.overview,
+        columns=req.columns,
+        quality=req.quality,
+        numeric_stats=req.numeric_stats,
+        outliers_map=req.outliers,
+        preview_rows=req.preview,
+        dataset_format=req.dataset_format,
+        active_worksheet=req.active_worksheet,
+    )
+    clean_name = (
+        req.filename.replace(".csv", "")
+        .replace(".xlsx", "")
+        .replace(".xls", "")
+        .replace(".json", "")
+        .replace(".tsv", "")
+        .replace(".parquet", "")
+    )
+    download_filename = f"{clean_name}_complete_analysis_archive.zip"
+    return Response(
+        content=zip_bytes,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
+    )
+
+
+@router.post("/export/html")
+def export_summary_html(req: ExportXLSXRequest) -> Response:
+    """Generate standalone, print/PDF-ready HTML executive analysis report."""
+    html_content = generate_executive_summary_html(
+        filename=req.filename,
+        overview=req.overview,
+        quality=req.quality,
+        dataset_format=req.dataset_format,
+        active_worksheet=req.active_worksheet,
+    )
+    clean_name = req.filename.replace(".csv", "").replace(".xlsx", "").replace(".xls", "")
+    download_filename = f"{clean_name}_summary_report.html"
+    return Response(
+        content=html_content.encode("utf-8"),
+        media_type="text/html; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
     )
 

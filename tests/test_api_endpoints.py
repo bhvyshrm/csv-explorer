@@ -251,3 +251,137 @@ def test_vercel_routing_middleware_restores_path():
     res_index = client.get("/api/index")
     assert res_index.status_code == 200
     assert res_index.json()["status"] == "ok"
+
+
+def test_formats_endpoint():
+    """Verify formats registry endpoint returns full capability list."""
+    response = client.get("/api/formats")
+    assert response.status_code == 200
+    formats = response.json()
+    assert len(formats) >= 7
+    ids = [f["id"] for f in formats]
+    assert "csv" in ids
+    assert "json" in ids
+    assert "parquet" in ids
+    assert "text-log" in ids
+
+
+def test_samples_catalog_endpoint():
+    """Verify sample datasets catalog endpoint returns metadata."""
+    response = client.get("/api/samples")
+    assert response.status_code == 200
+    samples = response.json()
+    assert len(samples) >= 5
+    formats = [s["format"] for s in samples]
+    assert "CSV" in formats
+    assert "JSON" in formats
+    assert "TSV" in formats
+
+
+def test_new_sample_datasets():
+    """Verify all new sample dataset endpoints load and analyze successfully."""
+    # JSON sample
+    res_json = client.get("/api/sample/json")
+    assert res_json.status_code == 200
+    assert res_json.json()["dataset_format"] == "JSON"
+    assert res_json.json()["overview"]["total_rows"] > 0
+
+    # TSV sample
+    res_tsv = client.get("/api/sample/tsv")
+    assert res_tsv.status_code == 200
+    assert res_tsv.json()["dataset_format"] == "TSV"
+    assert res_tsv.json()["overview"]["total_rows"] > 0
+
+    # Log sample
+    res_log = client.get("/api/sample/log")
+    assert res_log.status_code == 200
+    assert res_log.json()["dataset_format"] in ["Log", "Text"]
+    assert res_log.json()["overview"]["total_rows"] > 0
+
+    # Parquet sample
+    res_parquet = client.get("/api/sample/parquet")
+    assert res_parquet.status_code == 200
+    assert res_parquet.json()["dataset_format"] == "Parquet"
+    assert res_parquet.json()["overview"]["total_rows"] > 0
+
+
+def test_universal_upload_endpoint():
+    """Verify universal upload endpoint ingests diverse formats (.json, .tsv)."""
+    # 1. Upload JSON
+    json_bytes = b'[{"item": "Keyboard", "price": 49.99}, {"item": "Mouse", "price": 24.50}]'
+    res_json = client.post(
+        "/api/upload",
+        files={"file": ("inventory.json", io.BytesIO(json_bytes), "application/json")},
+    )
+    assert res_json.status_code == 200
+    data_json = res_json.json()
+    assert data_json["dataset_format"] == "JSON"
+    assert data_json["overview"]["total_rows"] == 2
+
+    # 2. Upload TSV
+    tsv_bytes = b"user\trole\nalice\tadmin\nbob\tanalyst\n"
+    res_tsv = client.post(
+        "/api/upload",
+        files={"file": ("roles.tsv", io.BytesIO(tsv_bytes), "text/tab-separated-values")},
+    )
+    assert res_tsv.status_code == 200
+    data_tsv = res_tsv.json()
+    assert data_tsv["dataset_format"] == "TSV"
+    assert data_tsv["overview"]["total_rows"] == 2
+
+
+def test_export_xlsx_and_zip_endpoints():
+    """Verify XLSX workbook and Complete ZIP archive export endpoints."""
+    payload = {
+        "filename": "orders.csv",
+        "dataset_format": "CSV",
+        "overview": {
+            "total_rows": 10,
+            "total_columns": 2,
+            "total_cells": 20,
+            "memory_usage_formatted": "2.4 KB",
+            "total_duplicate_rows": 0,
+            "duplicate_rows_pct": 0.0,
+            "total_missing_cells": 0,
+            "missing_cells_pct": 0.0,
+            "numeric_columns": ["Amount"],
+            "categorical_columns": ["Region"],
+        },
+        "columns": [
+            {
+                "Column Name": "Amount",
+                "Inferred Type": "Numeric",
+                "Python dtype": "float64",
+                "Missing Count": 0,
+                "Missing %": 0.0,
+                "Unique Values": 10,
+                "Memory (Bytes)": 80,
+            }
+        ],
+        "quality": {
+            "status": "Healthy",
+            "overall_health_score": 100.0,
+            "missing_summary": {"detail_table": []},
+        },
+        "numeric_stats": [{"Statistic": "mean", "Amount": 150.0}],
+    }
+
+    # 1. Test /api/export/xlsx
+    res_xlsx = client.post("/api/export/xlsx", json=payload)
+    assert res_xlsx.status_code == 200
+    assert "spreadsheetml.sheet" in res_xlsx.headers["content-type"]
+    assert len(res_xlsx.content) > 0
+
+    # 2. Test /api/export/zip
+    zip_payload = {**payload, "preview": [{"Amount": 100, "Region": "North"}]}
+    res_zip = client.post("/api/export/zip", json=zip_payload)
+    assert res_zip.status_code == 200
+    assert "application/zip" in res_zip.headers["content-type"]
+    assert len(res_zip.content) > 0
+
+    # 3. Test /api/export/html
+    res_html = client.post("/api/export/html", json=payload)
+    assert res_html.status_code == 200
+    assert "text/html" in res_html.headers["content-type"]
+    assert b"Executive Analysis Report" in res_html.content
+
