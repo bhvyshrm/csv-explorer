@@ -69,28 +69,28 @@ export default function OverviewView({ data }: OverviewViewProps) {
       label: "Numeric",
       count: overview.numeric_columns.length,
       icon: Hash,
-      color: "bg-purple-950/40 text-purple-300 border-purple-800/40",
+      color: "bg-purple-50 text-purple-700 border-purple-200",
       list: overview.numeric_columns,
     },
     {
       label: "Categorical",
       count: overview.categorical_columns.length,
       icon: FileSpreadsheet,
-      color: "bg-teal-950/40 text-teal-300 border-teal-800/40",
+      color: "bg-teal-50 text-teal-700 border-teal-200",
       list: overview.categorical_columns,
     },
     {
       label: "Datetime",
       count: overview.datetime_columns.length,
       icon: Calendar,
-      color: "bg-blue-950/40 text-blue-300 border-blue-800/40",
+      color: "bg-blue-50 text-blue-700 border-blue-200",
       list: overview.datetime_columns,
     },
     {
       label: "Boolean",
       count: overview.boolean_columns.length,
       icon: ToggleLeft,
-      color: "bg-indigo-950/40 text-indigo-300 border-indigo-800/40",
+      color: "bg-indigo-50 text-indigo-700 border-indigo-200",
       list: overview.boolean_columns,
     },
   ];
@@ -98,26 +98,26 @@ export default function OverviewView({ data }: OverviewViewProps) {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-card border border-border rounded-xl p-6 relative overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 shadow-sm relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs uppercase tracking-wider font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded">
+              <span className="text-xs uppercase tracking-wider font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full font-mono">
                 Active Dataset
               </span>
-              <span className="text-xs text-muted-text font-mono">
+              <span className="text-xs text-slate-500 font-mono">
                 {data.dataset_format}
               </span>
               {data.active_worksheet && (
-                <span className="text-xs bg-card-hover border border-border px-2 py-0.5 rounded text-primary-text font-mono">
+                <span className="text-xs bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full text-slate-800 font-mono">
                   Sheet: {data.active_worksheet}
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-primary-text">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               {data.dataset_name}
             </h1>
-            <p className="text-sm text-muted-text mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Deterministic in-memory profiling, quality diagnostics, and structural breakdown.
             </p>
           </div>
@@ -131,18 +131,18 @@ export default function OverviewView({ data }: OverviewViewProps) {
           return (
             <div
               key={idx}
-              className="bg-card border border-border hover:border-accent/50 transition-colors rounded-xl p-5 shadow-sm"
+              className="bg-white/80 backdrop-blur-md border border-slate-200/80 hover:border-indigo-300 transition-colors rounded-2xl p-5 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-text uppercase tracking-wider">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider font-mono">
                   {card.label}
                 </span>
                 <Icon className={`w-4 h-4 ${card.color}`} />
               </div>
-              <div className="text-2xl font-bold text-primary-text mt-2 font-mono">
+              <div className="text-2xl font-bold text-slate-900 mt-2 font-mono">
                 {card.value}
               </div>
-              <p className="text-xs text-muted-text mt-1 truncate">
+              <p className="text-xs text-slate-500 mt-1 truncate">
                 {card.subtext}
               </p>
             </div>
@@ -151,9 +151,9 @@ export default function OverviewView({ data }: OverviewViewProps) {
       </div>
 
       {/* Semantic Column Breakdown */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-base font-semibold text-primary-text mb-4 flex items-center gap-2">
-          <Columns className="w-4 h-4 text-accent" />
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Columns className="w-4 h-4 text-indigo-600" />
           Semantic Column Classifications
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -162,15 +162,15 @@ export default function OverviewView({ data }: OverviewViewProps) {
             return (
               <div
                 key={idx}
-                className="bg-background/60 border border-border rounded-lg p-4 flex flex-col justify-between"
+                className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-primary-text flex items-center gap-1.5">
-                      <Icon className="w-4 h-4 text-muted-text" />
+                    <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                      <Icon className="w-4 h-4 text-slate-500" />
                       {item.label}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-mono border ${item.color}`}>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono border ${item.color}`}>
                       {item.count} cols
                     </span>
                   </div>
@@ -179,13 +179,13 @@ export default function OverviewView({ data }: OverviewViewProps) {
                       item.list.map((colName, cIdx) => (
                         <span
                           key={cIdx}
-                          className="text-xs bg-card border border-border/80 text-muted-text px-2 py-1 rounded font-mono"
+                          className="text-xs bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-lg font-mono shadow-xs"
                         >
                           {colName}
                         </span>
                       ))
                     ) : (
-                      <span className="text-xs text-muted-text/60 italic">None detected</span>
+                      <span className="text-xs text-slate-400 italic">None detected</span>
                     )}
                   </div>
                 </div>
