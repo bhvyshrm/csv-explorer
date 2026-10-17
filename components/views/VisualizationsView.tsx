@@ -32,11 +32,11 @@ export default function VisualizationsView({ data }: VisualizationsViewProps) {
       <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-primary-text flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-accent" />
-              Interactive Dark Visualizations
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-indigo-600" />
+              Interactive Visualizations
             </h1>
-            <p className="text-sm text-muted-text mt-0.5">
+            <p className="text-xs text-slate-500 mt-1">
               Explore distributions, quartiles, category contributions, and correlation heatmaps.
             </p>
           </div>
