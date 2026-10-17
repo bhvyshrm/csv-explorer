@@ -142,11 +142,36 @@ export interface AnalysisPayload {
 
 export type ActiveNavTab =
   | "overview"
-  | "data-explorer"
-  | "excel-explorer"
   | "data-preview"
   | "data-quality"
   | "statistics"
   | "visualizations"
+  | "correlations"
+  | "outliers"
+  | "reports"
+  // Legacy aliases for backward compatibility
+  | "data-explorer"
+  | "excel-explorer"
   | "outlier-analysis"
   | "export-reports";
+
+export interface SampleDatasetItem {
+  id: string;
+  name: string;
+  format: string;
+  description: string;
+  endpoint: string;
+  rows: number;
+  cols: number;
+  badge: string;
+}
+
+export interface FormatDescriptorItem {
+  id: string;
+  name: string;
+  description: string;
+  extensions: string[];
+  is_available: boolean;
+  status_label: string;
+  category: string;
+}
