@@ -3,15 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #0A0B10;
-  --foreground: #F5F6FA;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
-  background-color: #0A0B10;
-  color: #F5F6FA;
+  background-color: #f1f5f9;
+  color: #0f172a;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glass & Pastel Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.07);
 }
 
 /* Custom Scrollbars */
@@ -20,12 +43,12 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A0B10;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #292E3D;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8B7CFF;
+  background: #94a3b8;
 }
