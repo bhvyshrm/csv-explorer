@@ -7,6 +7,9 @@ pytest>=8.0.0
 openpyxl>=3.1.0
 xlrd>=2.0.0
 
+# Parquet columnar dataset support
+pyarrow>=14.0.0
+
 # FastAPI serverless backend dependencies
 fastapi>=0.110.0
 python-multipart>=0.0.9
