@@ -7,9 +7,15 @@ interface PlotlyChartProps {
   figure?: PlotlyFigureSpec | null;
   className?: string;
   height?: number;
+  theme?: "light" | "dark";
 }
 
-export default function PlotlyChart({ figure, className = "", height = 380 }: PlotlyChartProps) {
+export default function PlotlyChart({
+  figure,
+  className = "",
+  height = 380,
+  theme = "light",
+}: PlotlyChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,22 +26,23 @@ export default function PlotlyChart({ figure, className = "", height = 380 }: Pl
       const Plotly = PlotlyModule.default || PlotlyModule;
       if (!isMounted || !containerRef.current) return;
 
-      const darkLayout = {
+      const isLight = theme === "light";
+      const chartLayout = {
         ...figure.layout,
         autosize: true,
         height: height,
-        paper_bgcolor: "#151824",
-        plot_bgcolor: "#151824",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: isLight ? "rgba(248,250,252,0.6)" : "#151824",
         font: {
-          family: "Inter, sans-serif",
-          color: "#F5F6FA",
-          size: 12,
+          family: "Inter, -apple-system, sans-serif",
+          color: isLight ? "#334155" : "#F5F6FA",
+          size: 11,
           ...(figure.layout?.font || {}),
         },
         margin: { t: 40, r: 25, l: 50, b: 50, ...(figure.layout?.margin || {}) },
       };
 
-      Plotly.newPlot(containerRef.current, figure.data, darkLayout, {
+      Plotly.newPlot(containerRef.current, figure.data, chartLayout, {
         responsive: true,
         displayModeBar: false,
       });
